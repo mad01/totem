@@ -12,13 +12,15 @@ type HttpSrv struct {
 	router         *gin.Engine
 	port           int
 	promController *PrometheusController
+	kube *Kube
 }
 
-func newHttpSrv(port int) *HttpSrv {
+func newHttpSrv(port int, kube *Kube) *HttpSrv {
 	return &HttpSrv{
 		router:         gin.Default(),
 		port:           port,
 		promController: newPrometheusController(port),
+		kube: kube,
 	}
 }
 
