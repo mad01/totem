@@ -14,7 +14,7 @@ import (
 )
 
 const annotation = "k8s.io.totem/managed"
-const annotationCreadtedAt = "k8s.io.totem/created-at" // should be a timestamp
+const annotationCreatedAt = "k8s.io.totem/created-at" // should be a timestamp
 
 type kubecfg struct {
 	certData string
@@ -41,8 +41,8 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: fmt.Sprintf("%s-%s", accessLevel, sa.Name),
 			Annotations: map[string]string{
-				annotation: "",
-				annotationCreadtedAt: time.Now().String(),
+				annotation:          "",
+				annotationCreatedAt: time.Now().String(),
 			},
 		},
 		TypeMeta: meta_v1.TypeMeta{
@@ -71,8 +71,8 @@ func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error){
 	sa := &v1.ServiceAccount{}
 	sa.Name = fmt.Sprintf("%s", uuid.NewUUID())
 	sa.Annotations = map[string]string{
-		annotation: "",
-		annotationCreadtedAt: time.Now().String(),
+		annotation:          "",
+		annotationCreatedAt: time.Now().String(),
 	}
 
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
