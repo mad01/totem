@@ -33,3 +33,12 @@ func (h *HttpSrv) Run(stopChan chan struct{}) {
 func (h *HttpSrv) handlerHealth(c *gin.Context) {
 	c.String(http.StatusOK, "ok")
 }
+
+func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
+	cfg, err := h.kube.getServiceAccountKubeConfig()
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+
+	c.String(http.StatusOK, cfg)
+}
