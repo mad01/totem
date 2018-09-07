@@ -15,15 +15,20 @@ import (
 	b64 "encoding/base64"
 )
 
+// todo: add delete func for service account
+// todo: add delete of clsuter role binding for service account
+// todo: add cleanup loop to delete service accounts and cluster role binding older then N time
+
+
 const annotation = "k8s.io.totem/managed"
 const annotationCreatedAt = "k8s.io.totem/created-at" // should be a timestamp
 
 type kubecfg struct {
-	certData string
-	serverUrl string
+	cert        string
+	serverUrl   string
 	clusterName string
-	user string
-	token string
+	user        string
+	token       string
 }
 
 
@@ -116,19 +121,48 @@ func (k *Kube) getSecretUserToken(secret *v1.Secret) (string, error) {
 	return "", nil
 }
 
-func (k *Kube) getServiceAccountList(namespace string) (*v1.ServiceAccountList, error) {
-	return k.client.CoreV1().ServiceAccounts(namespace).List(meta_v1.ListOptions{})
+func (k *Kube) getServiceAccountList() (*v1.ServiceAccountList, error) {
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).List(meta_v1.ListOptions{})
 }
 
-func (k *Kube) getServiceAccount(namespace string, name string) (*v1.ServiceAccount, error) {
-	return k.client.CoreV1().ServiceAccounts(namespace).Get(name, meta_v1.GetOptions{})
+func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
+func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string, error) {
+	account, err := k.createServiceAccount()
+	if errCheck(err) {
+		return "", err
+	}
 
-func (k *Kube) getServiceAccountKubeConfig() (string, error) {
-	// to all the calls here to create everything to be able to return a kubeconfig
-	// todo: implement
-	return "", nil
+	err = k.createClusterRoleBinding(accessLevel, account)
+	if errCheck(err) {
+		return "", err
+	}
+
+	secret, err := k.getSecret(account)
+	if errCheck(err) {
+		return "", err
+	}
+
+	cert,err := k.getSecretCaCert(secret)
+	if errCheck(err) {
+		return "", err
+	}
+
+	token, err := k.getSecretUserToken(secret)
+	if errCheck(err) {
+		return "", err
+	}
+
+	cfg := &kubecfg{ }
+	cfg.user = account.Name
+	cfg.token = token
+	cfg.cert = cert
+	cfg.clusterName = cluster
+	cfg.serverUrl = k.restConfig.Host
+
+	return k.generateKubeConfig(cfg), nil
 }
 
 func (k *Kube) generateKubeConfig(cfg *kubecfg) string {
@@ -155,7 +189,7 @@ users:
 `
 
 	var replacer = strings.NewReplacer(
-		"{cert-data}", cfg.certData,
+		"{cert-data}", cfg.cert,
 		"{server-url}", cfg.serverUrl,
 		"{clusterName}", cfg.clusterName,
 		"{user}", cfg.user,
@@ -204,4 +238,11 @@ func K8sGetClient(kubeconfig string) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func errCheck(err error) bool {
+	if err != nil {
+		return true
+	}
+	return false
 }
