@@ -16,7 +16,7 @@ func newController(kube *Kube, interval time.Duration, port int) *controller {
 		interval: interval,
 		kube:     kube,
 		stopChan: make(chan struct{}),
-		httpSrv:  newHttpSrv(port),
+		httpSrv:  newHttpSrv(port, kube),
 	}
 	return c
 }
