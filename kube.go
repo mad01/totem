@@ -35,6 +35,7 @@ type Kube struct {
 	client                  *kubernetes.Clientset
 	restConfig              *rest.Config
 	serviceAccountNamespace string
+	cluster                 string
 }
 
 func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccount) error {
@@ -121,7 +122,7 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
-func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string, error) {
+func (k *Kube) getServiceAccountKubeConfig(accessLevel string) (string, error) {
 	account, err := k.createServiceAccount()
 	if errCheck(err) {
 		return "", err
@@ -148,7 +149,7 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string,
 	cfg.user = account.Name
 	cfg.token = token
 	cfg.cert = cert
-	cfg.clusterName = cluster
+	cfg.clusterName = k.cluster
 	cfg.serverUrl = k.restConfig.Host
 
 	return k.generateKubeConfig(cfg), nil

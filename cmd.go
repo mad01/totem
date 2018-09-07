@@ -21,7 +21,7 @@ func cmdVersion() *cobra.Command {
 }
 
 func cmdRunController() *cobra.Command {
-	var kubeconfig, namespace string
+	var kubeconfig, namespace, cluster string
 	var verbose bool
 	var interval time.Duration
 	var port int
@@ -34,12 +34,14 @@ func cmdRunController() *cobra.Command {
 
 			kube := newKube(kubeconfig)
 			kube.serviceAccountNamespace = namespace
+			kube.cluster = cluster
 
 			controller := newController(kube, interval, port)
 			controller.Run()
 		},
 	}
 	command.Flags().StringVarP(&kubeconfig, "kube.config", "k", "", "outside cluster path to kube config")
+	command.Flags().StringVarP(&cluster, "cluster", "c", "default", "name of k8s cluster")
 	command.Flags().StringVarP(
 		&namespace,
 		"namespace", "n",
@@ -53,6 +55,10 @@ func cmdRunController() *cobra.Command {
 		"controller update interaval for internal k8s caches",
 	)
 	command.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+
+	command.MarkFlagRequired("cluster")
+	command.MarkFlagRequired("kube.config")
+
 	return command
 }
 
