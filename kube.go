@@ -98,24 +98,17 @@ func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
 
 }
 
-func (k *Kube) getSecretCaCert(secret *v1.Secret) (string, error) {
-	if certB64, ok := secret.Data["ca.crt"]; ok {
-		cert, err := b64.StdEncoding.DecodeString(string(certB64))
-		if err != nil {
-			return "", err
-		}
-		return string(cert), nil
+func (k *Kube) getSecretCaCert(secret *v1.Secret) string {
+	if certBytes, ok := secret.Data["ca.crt"]; ok {
+		cert := b64.StdEncoding.EncodeToString(certBytes)
+		return string(cert)
 	}
-	return "", nil
+	return ""
 }
 
 func (k *Kube) getSecretUserToken(secret *v1.Secret) (string, error) {
 	if tokenB64, ok := secret.Data["token"]; ok {
-		token, err := b64.StdEncoding.DecodeString(string(tokenB64))
-		if err != nil {
-			return "", err
-		}
-		return string(token), nil
+		return string(tokenB64), nil
 	}
 	return "", nil
 }
@@ -139,16 +132,13 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string,
 		return "", err
 	}
 
+	time.Sleep(time.Second * 2)
 	secret, err := k.getSecret(account)
 	if errCheck(err) {
 		return "", err
 	}
 
-	cert, err := k.getSecretCaCert(secret)
-	if errCheck(err) {
-		return "", err
-	}
-
+	cert := k.getSecretCaCert(secret)
 	token, err := k.getSecretUserToken(secret)
 	if errCheck(err) {
 		return "", err
