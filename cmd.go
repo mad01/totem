@@ -21,7 +21,7 @@ func cmdVersion() *cobra.Command {
 }
 
 func cmdRunController() *cobra.Command {
-	var kubeconfig string
+	var kubeconfig, namespace string
 	var verbose bool
 	var interval time.Duration
 	var port int
@@ -33,12 +33,18 @@ func cmdRunController() *cobra.Command {
 			initLog(verbose)
 
 			kube := newKube(kubeconfig)
+			kube.serviceAccountNamespace = namespace
 
 			controller := newController(kube, interval, port)
 			controller.Run()
 		},
 	}
 	command.Flags().StringVarP(&kubeconfig, "kube.config", "k", "", "outside cluster path to kube config")
+	command.Flags().StringVarP(
+		&namespace,
+		"namespace", "n",
+		"default", "ns where the service accounts and cluster role bindings is created",
+	)
 	command.Flags().IntVarP(&port, "http.port", "p", 8080, "http server port")
 	command.Flags().DurationVarP(
 		&interval,
