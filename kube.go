@@ -14,7 +14,7 @@ import (
 )
 
 const annotation = "k8s.io.totem/managed"
-const annotationCreadtedAt = "k8s.io.totem/created-at" // should be a timestamp of
+const annotationCreadtedAt = "k8s.io.totem/created-at" // should be a timestamp
 
 type kubecfg struct {
 	certData string
