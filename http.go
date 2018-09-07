@@ -27,6 +27,7 @@ func newHttpSrv(port int, kube *Kube) *HttpSrv {
 func (h *HttpSrv) Run(stopChan chan struct{}) {
 	h.router.GET("/health", h.handlerHealth)
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	h.router.GET("/kubeconfig/:cluster/:access", h.handlerKubeConfig)
 	h.router.Run(fmt.Sprintf(":%d", h.port))
 }
 
@@ -35,11 +36,15 @@ func (h *HttpSrv) handlerHealth(c *gin.Context) {
 }
 
 func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
-	cfg, err := h.kube.getServiceAccountKubeConfig()
+	cluster := c.Param("cluster")
+	accessLevel := c.Param("access")
+	cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, cluster)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
+		log().Error(err.Error())
 	}
 
+	log().Infof("generated kube config for cluster: (%s) with access level: (%s)", cluster, accessLevel)
 	c.String(http.StatusOK, cfg)
 }
 
