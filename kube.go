@@ -12,6 +12,7 @@ import (
 	rbac "k8s.io/api/rbac/v1"
 	"strings"
 	"time"
+	b64 "encoding/base64"
 )
 
 const annotation = "k8s.io.totem/managed"
@@ -93,14 +94,26 @@ func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
 
 }
 
-func (k *Kube) getSecretCaCert(secret *v1.Secret) string {
-	// todo: implement
-	return ""
+func (k *Kube) getSecretCaCert(secret *v1.Secret) (string, error) {
+	if certB64, ok := secret.Data["ca.crt"]; ok {
+		cert, err := b64.StdEncoding.DecodeString(string(certB64))
+		if err != nil {
+			return "", err
+		}
+		return string(cert), nil
+	}
+	return "", nil
 }
 
-func (k *Kube) getSecretUserToken(secret *v1.Secret) string {
-	// todo: implement
-	return ""
+func (k *Kube) getSecretUserToken(secret *v1.Secret) (string, error) {
+	if tokenB64, ok := secret.Data["token"]; ok {
+		token, err := b64.StdEncoding.DecodeString(string(tokenB64))
+		if err != nil {
+			return "", err
+		}
+		return string(token), nil
+	}
+	return "", nil
 }
 
 func (k *Kube) getServiceAccountList(namespace string) (*v1.ServiceAccountList, error) {
