@@ -183,6 +183,7 @@ users:
 		"{clusterName}", cfg.clusterName,
 		"{user}", cfg.user,
 		"{token}", cfg.token,
+		"{namespace}", k.serviceAccountNamespace,
 	)
 	str := replacer.Replace(template)
 	return str
