@@ -12,7 +12,7 @@ type HttpSrv struct {
 	router         *gin.Engine
 	port           int
 	promController *PrometheusController
-	kube *Kube
+	kube           *Kube
 }
 
 func newHttpSrv(port int, kube *Kube) *HttpSrv {
@@ -20,7 +20,7 @@ func newHttpSrv(port int, kube *Kube) *HttpSrv {
 		router:         gin.Default(),
 		port:           port,
 		promController: newPrometheusController(port),
-		kube: kube,
+		kube:           kube,
 	}
 }
 

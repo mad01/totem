@@ -1,24 +1,24 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	rbac "k8s.io/api/rbac/v1"
-	"strings"
-	"time"
-	b64 "encoding/base64"
 )
 
 // todo: add delete func for service account
 // todo: add delete of clsuter role binding for service account
 // todo: add cleanup loop to delete service accounts and cluster role binding older then N time
-
 
 const annotation = "k8s.io.totem/managed"
 const annotationCreatedAt = "k8s.io.totem/created-at" // should be a timestamp
@@ -31,10 +31,9 @@ type kubecfg struct {
 	token       string
 }
 
-
 type Kube struct {
-	client *kubernetes.Clientset
-	restConfig *rest.Config
+	client                  *kubernetes.Clientset
+	restConfig              *rest.Config
 	serviceAccountNamespace string
 }
 
@@ -74,7 +73,7 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 	return nil
 }
 
-func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error){
+func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error) {
 	sa := &v1.ServiceAccount{}
 	sa.Name = fmt.Sprintf("%s", uuid.NewUUID())
 	sa.Annotations = map[string]string{
@@ -145,7 +144,7 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string,
 		return "", err
 	}
 
-	cert,err := k.getSecretCaCert(secret)
+	cert, err := k.getSecretCaCert(secret)
 	if errCheck(err) {
 		return "", err
 	}
@@ -155,7 +154,7 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string,
 		return "", err
 	}
 
-	cfg := &kubecfg{ }
+	cfg := &kubecfg{}
 	cfg.user = account.Name
 	cfg.token = token
 	cfg.cert = cert
@@ -166,7 +165,7 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, cluster string) (string,
 }
 
 func (k *Kube) generateKubeConfig(cfg *kubecfg) string {
-template :=`
+	template := `
 apiVersion: v1
 clusters:
 - cluster:
@@ -199,8 +198,6 @@ users:
 	return str
 }
 
-
-
 func newKube(kubeconfig string) *Kube {
 	client, err := K8sGetClient(kubeconfig)
 	if err != nil {
@@ -213,7 +210,7 @@ func newKube(kubeconfig string) *Kube {
 	}
 
 	k := &Kube{
-		client: client,
+		client:     client,
 		restConfig: restClient,
 	}
 	return k
