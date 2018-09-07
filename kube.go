@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
@@ -78,9 +79,18 @@ func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error){
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
 }
 
-func (k *Kube) getSecret(namespace string, name string) (*v1.Secret, error) {
-	// todo: implement
-	return nil, nil
+func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
+	account, err := k.getServiceAccount(sa.Name)
+	if err != nil {
+		return nil, err
+	}
+	if len(account.Secrets) == 0 {
+		return nil, errors.New("no secrets found in service account object")
+	}
+	return k.client.CoreV1().Secrets(k.serviceAccountNamespace).Get(
+		account.Secrets[0].Name, meta_v1.GetOptions{},
+	)
+
 }
 
 func (k *Kube) getSecretCaCert(secret *v1.Secret) string {
