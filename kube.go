@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+	"time"
 )
 
 const annotation = "k8s.io.totem/managed"
@@ -24,6 +27,7 @@ type kubecfg struct {
 type Kube struct {
 	client *kubernetes.Clientset
 	restConfig *rest.Config
+	serviceAccountNamespace string
 }
 
 func (k *Kube) createClusterRoleBinding(namespace, accessLevel string, sa *v1.ServiceAccount) error {
@@ -32,8 +36,14 @@ func (k *Kube) createClusterRoleBinding(namespace, accessLevel string, sa *v1.Se
 }
 
 func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error){
-	// todo: implement
-	return nil, nil
+	sa := &v1.ServiceAccount{}
+	sa.Name = fmt.Sprintf("%s", uuid.NewUUID())
+	sa.Annotations = map[string]string{
+		annotation: "",
+		annotationCreadtedAt: time.Now().String(),
+	}
+
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
 }
 
 func (k *Kube) getSecret(namespace string, name string) (*v1.Secret, error) {
