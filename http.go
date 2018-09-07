@@ -42,3 +42,6 @@ func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
 
 	c.String(http.StatusOK, cfg)
 }
+
+// todo: implement func to return kubeconfig for service account
+// todo: implement basic auth
