@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	rbac "k8s.io/api/rbac/v1"
 	"strings"
 	"time"
 )
@@ -30,8 +31,39 @@ type Kube struct {
 	serviceAccountNamespace string
 }
 
-func (k *Kube) createClusterRoleBinding(namespace, accessLevel string, sa *v1.ServiceAccount) error {
-	// todo: implement
+func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccount) error {
+	// access level should be for a start view/edit/admin
+	// options for the features is to add a config file with the allowed options
+	// and then it's expected that we are bootstrapping the cluster with the needed
+	// cluster role bindings to
+
+	crb := &rbac.ClusterRoleBinding{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: fmt.Sprintf("%s-%s", accessLevel, sa.Name),
+			Annotations: map[string]string{
+				annotation: "",
+				annotationCreadtedAt: time.Now().String(),
+			},
+		},
+		TypeMeta: meta_v1.TypeMeta{
+			Kind:       "ClusterRoleBinding",
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: rbac.GroupName,
+			Kind:     "ClusterRole",
+			Name:     accessLevel,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Kind:      rbac.ServiceAccountKind,
+				Namespace: k.serviceAccountNamespace,
+				Name:      sa.Name,
+			},
+		},
+	}
+
+	k.client.RbacV1().ClusterRoleBindings().Create(crb)
 	return nil
 }
 
