@@ -1,0 +1,7 @@
+totem
+_bin
+_release
+.version
+.idea
+./deployment.yaml
+vendor/

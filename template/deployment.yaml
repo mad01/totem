@@ -1,0 +1,28 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: totem
+  namespace: system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: totem
+    spec:
+      serviceAccount: totem
+      containers:
+        - name: totem
+          image: {{CONTAINER}}:{{VERSION}}
+          command:
+            - "./totem"
+          args:
+            - "controller"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: system
+  name: totem

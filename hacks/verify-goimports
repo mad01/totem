@@ -1,0 +1,14 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
+GOIMPORTS="goimports -w"
+
+bad_files=$($GOIMPORTS -l *.go)
+if [[ -n "${bad_files}" ]]; then
+  echo "FAIL: '$GOIMPORTS' needs to be run on the following files: "
+  echo "${bad_files}"
+  echo "FAIL: please execute make gofmt"
+  exit 1
+fi
