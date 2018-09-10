@@ -21,7 +21,7 @@ func cmdVersion() *cobra.Command {
 }
 
 func cmdRunController() *cobra.Command {
-	var kubeconfig, namespace, cluster string
+	var kubeconfig, namespace, cluster, config string
 	var verbose bool
 	var interval, tokenLifetime time.Duration
 	var port int
@@ -36,11 +36,19 @@ func cmdRunController() *cobra.Command {
 			kube.serviceAccountNamespace = namespace
 			kube.cluster = cluster
 
-			controller := newController(kube, interval, tokenLifetime, port)
+			cfg := &Config{}
+			cfg.Load(config)
+			cfg.Port = port
+			controller := newController(kube, interval, tokenLifetime, cfg)
 			controller.Run()
 		},
 	}
 	command.Flags().StringVarP(&kubeconfig, "kube.config", "k", "", "outside cluster path to kube config")
+	command.Flags().StringVarP(
+		&config,
+		"config", "u", "",
+		"path to config. config contains user/role mapping",
+	)
 	command.Flags().StringVarP(&cluster, "cluster", "c", "default", "name of k8s cluster")
 	command.Flags().StringVarP(
 		&namespace,
