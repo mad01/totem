@@ -9,15 +9,15 @@ type controller struct {
 	tokenLifetime     time.Duration
 	kube              *Kube
 	stopChan          chan struct{}
-	httpSrv           *HttpSrv
+	httpServer        *HttpServer
 	cleanupController *cleanupController
 }
 
-func newController(kube *Kube, interval, lifetime time.Duration, port int) *controller {
+func newController(kube *Kube, interval, lifetime time.Duration, config *Config) *controller {
 	c := &controller{
 		kube:              kube,
 		stopChan:          make(chan struct{}),
-		httpSrv:           newHttpSrv(port, kube),
+		httpServer:        newHttpServer(kube, config),
 		cleanupController: newCleanupController(kube, interval, lifetime),
 	}
 	return c
@@ -26,7 +26,7 @@ func newController(kube *Kube, interval, lifetime time.Duration, port int) *cont
 func (c *controller) Run() {
 	log().Info("Starting controller")
 
-	go c.httpSrv.Run()
+	go c.httpServer.Run()
 	go c.cleanupController.Run()
 
 	go handleSigterm(c.stopChan)
