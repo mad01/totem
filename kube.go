@@ -10,7 +10,6 @@ import (
 	"k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -45,7 +44,7 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 
 	crb := &rbac.ClusterRoleBinding{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", accessLevel, sa.Name),
+			Name: fmt.Sprintf("%s-%s", sa.Name, accessLevel),
 			Annotations: map[string]string{
 				annotation:          "",
 				annotationCreatedAt: time.Now().Format(timeFormat),
@@ -73,9 +72,9 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 	return nil
 }
 
-func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error) {
+func (k *Kube) createServiceAccount(name string) (*v1.ServiceAccount, error) {
 	sa := &v1.ServiceAccount{}
-	sa.Name = fmt.Sprintf("%s", uuid.NewUUID())
+	sa.Name = name
 	sa.Annotations = map[string]string{
 		annotation:          "",
 		annotationCreatedAt: time.Now().Format(timeFormat),
@@ -133,8 +132,8 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
-func (k *Kube) getServiceAccountKubeConfig(accessLevel string) (string, error) {
-	account, err := k.createServiceAccount()
+func (k *Kube) getServiceAccountKubeConfig(accessLevel, name string) (string, error) {
+	account, err := k.createServiceAccount(name)
 	if errCheck(err) {
 		return "", err
 	}
