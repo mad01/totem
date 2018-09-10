@@ -75,5 +75,3 @@ func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
 	}
 
 }
-
-// todo: implement basic auth

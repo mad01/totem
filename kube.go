@@ -15,8 +15,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// todo: add cleanup loop to delete service accounts and cluster role binding older then N time
-
 const annotation = "k8s.io.totem/managed"
 const annotationCreatedAt = "k8s.io.totem/created-at" // timeFormat
 const timeFormat = time.RFC3339
