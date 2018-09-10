@@ -121,6 +121,10 @@ func (k *Kube) getSecretUserToken(secret *v1.Secret) (string, error) {
 	return "", nil
 }
 
+func (k *Kube) getClusterRoleBindingList() (*rbac.ClusterRoleBindingList, error) {
+	return k.client.RbacV1().ClusterRoleBindings().List(meta_v1.ListOptions{})
+}
+
 func (k *Kube) getServiceAccountList() (*v1.ServiceAccountList, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).List(meta_v1.ListOptions{})
 }
