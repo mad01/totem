@@ -25,16 +25,6 @@ func getMetricPrefix(name string) string {
 }
 
 type PrometheusController struct {
-	port int
-	addr string
-}
-
-func newPrometheusController(port int) *PrometheusController {
-	p := &PrometheusController{
-		port: port,
-		addr: fmt.Sprintf(":%v", port),
-	}
-	return p
 }
 
 func (p *PrometheusController) registerMetrics() {
