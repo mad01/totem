@@ -141,7 +141,7 @@ func (k *Kube) getServiceAccountKubeConfig(accessLevel, name string) (string, er
 		return "", err
 	}
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 2) //todo: add some retry login for getting secret to not have to sleep
 	secret, err := k.getSecret(account)
 	if errCheck(err) {
 		return "", err
