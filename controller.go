@@ -33,15 +33,3 @@ func (c *controller) Run() {
 	log().Info("Stopping controller")
 	return
 }
-
-func (c *controller) worker(stopChan chan struct{}) {
-	for {
-		select {
-		default:
-			// TODO: do a bit of the work
-		case <-stopChan:
-			log().Info("Stopping worker since stopChan closed")
-			return
-		}
-	}
-}
