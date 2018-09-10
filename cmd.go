@@ -23,7 +23,7 @@ func cmdVersion() *cobra.Command {
 func cmdRunController() *cobra.Command {
 	var kubeconfig, namespace, cluster string
 	var verbose bool
-	var interval time.Duration
+	var interval, tokenLifetime time.Duration
 	var port int
 	var command = &cobra.Command{
 		Use:   "controller",
@@ -36,7 +36,7 @@ func cmdRunController() *cobra.Command {
 			kube.serviceAccountNamespace = namespace
 			kube.cluster = cluster
 
-			controller := newController(kube, interval, port)
+			controller := newController(kube, interval, tokenLifetime, port)
 			controller.Run()
 		},
 	}
@@ -50,9 +50,15 @@ func cmdRunController() *cobra.Command {
 	command.Flags().IntVarP(&port, "http.port", "p", 8080, "http server port")
 	command.Flags().DurationVarP(
 		&interval,
-		"interval.controller", "i",
-		10*time.Second,
-		"controller update interaval for internal k8s caches",
+		"interval", "i",
+		60*time.Second,
+		"the interval in which the cleanup of old token runs",
+	)
+	command.Flags().DurationVarP(
+		&tokenLifetime,
+		"token.lifetime", "l",
+		1*time.Hour,
+		"the time that a kube config is valid for",
 	)
 	command.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
