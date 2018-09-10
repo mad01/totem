@@ -16,8 +16,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// todo: add delete func for service account
-// todo: add delete of clsuter role binding for service account
 // todo: add cleanup loop to delete service accounts and cluster role binding older then N time
 
 const annotation = "k8s.io.totem/managed"
@@ -83,6 +81,14 @@ func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error) {
 	}
 
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
+}
+
+func (k *Kube) deleteServiceAccount(name string) error {
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Delete(name, &meta_v1.DeleteOptions{})
+}
+
+func (k *Kube) deleteClusterRoleBinding(name string) error {
+	return k.client.RbacV1().ClusterRoleBindings().Delete(name, &meta_v1.DeleteOptions{})
 }
 
 func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
