@@ -26,7 +26,7 @@ func newController(kube *Kube, interval, lifetime time.Duration, port int) *cont
 func (c *controller) Run() {
 	log().Info("Starting controller")
 
-	go c.httpSrv.Run(c.stopChan)
+	go c.httpSrv.Run()
 	go c.cleanupController.Run()
 
 	go handleSigterm(c.stopChan)

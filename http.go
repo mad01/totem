@@ -24,7 +24,7 @@ func newHttpSrv(port int, kube *Kube) *HttpSrv {
 	}
 }
 
-func (h *HttpSrv) Run(stopChan chan struct{}) {
+func (h *HttpSrv) Run() {
 	h.router.GET("/health", h.handlerHealth)
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	h.router.GET("/kubeconfig/:access/:name", h.handlerKubeConfig)
