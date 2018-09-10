@@ -28,6 +28,15 @@ func (h *HttpSrv) Run() {
 	h.router.GET("/health", h.handlerHealth)
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	h.router.GET("/kubeconfig/:access/:name", h.handlerKubeConfig)
+
+	accounts := gin.Accounts{
+		"admin": "admin",
+		"test":  "test",
+	}
+
+	authorized := h.router.Group("/api/", gin.BasicAuth(accounts))
+	authorized.GET("/kubeconfig/:access", h.handlerKubeConfig)
+
 	h.router.Run(fmt.Sprintf(":%d", h.port))
 }
 
@@ -36,9 +45,9 @@ func (h *HttpSrv) handlerHealth(c *gin.Context) {
 }
 
 func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
+	user := c.MustGet(gin.AuthUserKey).(string)
 	accessLevel := c.Param("access")
-	name := c.Param("name")
-	cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, name)
+	cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, user)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		log().Error(err.Error())
@@ -48,7 +57,7 @@ func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
 		"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
 		h.kube.cluster,
 		accessLevel,
-		name,
+		user,
 	)
 	c.String(http.StatusOK, cfg)
 }
