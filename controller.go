@@ -5,18 +5,20 @@ import (
 )
 
 type controller struct {
-	interval time.Duration
-	kube     *Kube
-	stopChan chan struct{}
-	httpSrv  *HttpSrv
+	interval          time.Duration
+	tokenLifetime     time.Duration
+	kube              *Kube
+	stopChan          chan struct{}
+	httpSrv           *HttpSrv
+	cleanupController *cleanupController
 }
 
-func newController(kube *Kube, interval time.Duration, port int) *controller {
+func newController(kube *Kube, interval, lifetime time.Duration, port int) *controller {
 	c := &controller{
-		interval: interval,
-		kube:     kube,
-		stopChan: make(chan struct{}),
-		httpSrv:  newHttpSrv(port, kube),
+		kube:              kube,
+		stopChan:          make(chan struct{}),
+		httpSrv:           newHttpSrv(port, kube),
+		cleanupController: newCleanupController(kube, interval, lifetime),
 	}
 	return c
 }
@@ -24,8 +26,9 @@ func newController(kube *Kube, interval time.Duration, port int) *controller {
 func (c *controller) Run() {
 	log().Info("Starting controller")
 
-	go c.worker(c.stopChan)
 	go c.httpSrv.Run(c.stopChan)
+	go c.cleanupController.Run()
+
 	go handleSigterm(c.stopChan)
 
 	<-c.stopChan // block until stopchan closed
