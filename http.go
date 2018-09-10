@@ -9,6 +9,7 @@ import (
 )
 
 var userAccessLevel = map[string]string{
+	"admin":     "admin",
 	"alexander": "admin",
 	"foo":       "edit",
 	"bar":       "view",
@@ -38,6 +39,7 @@ func (h *HttpSrv) Run() {
 	// todo: get accounts from elsewere
 	accounts := gin.Accounts{
 		"admin":     "admin",
+		"test":      "test",
 		"alexander": "admin",
 		"foo":       "admin",
 		"bar":       "admin",
