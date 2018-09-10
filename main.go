@@ -9,3 +9,9 @@ func main() {
 		fmt.Println(err.Error())
 	}
 }
+
+// todo: adding option to have self created rbac cluster role bindings,
+// todo: adding option to limit to only one namespace with rolebinding not cluster role binding only
+// todo: adding rbac setup to not show secrets as part of any view/edit/admin options
+// todo: get basic user to rbac cluster role binding mapping from yaml
+// todo: integrations with central auth oauth2
