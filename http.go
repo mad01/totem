@@ -8,6 +8,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var userAccessLevel = map[string]string{
+	"alexander": "admin",
+	"foo":       "edit",
+	"bar":       "view",
+}
+
 type HttpSrv struct {
 	router         *gin.Engine
 	port           int
@@ -29,13 +35,16 @@ func (h *HttpSrv) Run() {
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	h.router.GET("/kubeconfig/:access/:name", h.handlerKubeConfig)
 
+	// todo: get accounts from elsewere
 	accounts := gin.Accounts{
-		"admin": "admin",
-		"test":  "test",
+		"admin":     "admin",
+		"alexander": "admin",
+		"foo":       "admin",
+		"bar":       "admin",
 	}
 
 	authorized := h.router.Group("/api/", gin.BasicAuth(accounts))
-	authorized.GET("/kubeconfig/:access", h.handlerKubeConfig)
+	authorized.GET("/kubeconfig", h.handlerKubeConfig)
 
 	h.router.Run(fmt.Sprintf(":%d", h.port))
 }
@@ -46,20 +55,23 @@ func (h *HttpSrv) handlerHealth(c *gin.Context) {
 
 func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
 	user := c.MustGet(gin.AuthUserKey).(string)
-	accessLevel := c.Param("access")
-	cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, user)
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		log().Error(err.Error())
+	if accessLevel, ok := userAccessLevel[user]; ok {
+		cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, user)
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			log().Error(err.Error())
+		}
+		log().Infof(
+			"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
+			h.kube.cluster,
+			accessLevel,
+			user,
+		)
+		c.String(http.StatusOK, cfg)
+	} else {
+		c.String(http.StatusInternalServerError, "Ops.. user did not have access configured)")
 	}
 
-	log().Infof(
-		"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
-		h.kube.cluster,
-		accessLevel,
-		user,
-	)
-	c.String(http.StatusOK, cfg)
 }
 
 // todo: implement basic auth
