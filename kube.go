@@ -19,7 +19,8 @@ import (
 // todo: add cleanup loop to delete service accounts and cluster role binding older then N time
 
 const annotation = "k8s.io.totem/managed"
-const annotationCreatedAt = "k8s.io.totem/created-at" // should be a timestamp
+const annotationCreatedAt = "k8s.io.totem/created-at" // timeFormat
+const timeFormat = time.RFC3339
 
 type kubecfg struct {
 	cert        string
@@ -47,7 +48,7 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 			Name: fmt.Sprintf("%s-%s", accessLevel, sa.Name),
 			Annotations: map[string]string{
 				annotation:          "",
-				annotationCreatedAt: time.Now().String(),
+				annotationCreatedAt: time.Now().Format(timeFormat),
 			},
 		},
 		TypeMeta: meta_v1.TypeMeta{
@@ -77,7 +78,7 @@ func (k *Kube) createServiceAccount() (*v1.ServiceAccount, error) {
 	sa.Name = fmt.Sprintf("%s", uuid.NewUUID())
 	sa.Annotations = map[string]string{
 		annotation:          "",
-		annotationCreatedAt: time.Now().String(),
+		annotationCreatedAt: time.Now().Format(timeFormat),
 	}
 
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
