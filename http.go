@@ -15,43 +15,33 @@ var userAccessLevel = map[string]string{
 	"bar":       "view",
 }
 
-type HttpSrv struct {
+type HttpServer struct {
 	router         *gin.Engine
-	port           int
 	promController *PrometheusController
 	kube           *Kube
+	config         *Config
 }
 
-func newHttpSrv(port int, kube *Kube) *HttpSrv {
-	return &HttpSrv{
+func newHttpServer(kube *Kube, config *Config) *HttpServer {
+	return &HttpServer{
 		router:         gin.Default(),
-		port:           port,
-		promController: newPrometheusController(port),
+		promController: &PrometheusController{},
 		kube:           kube,
+		config:         config,
 	}
 }
 
-func (h *HttpSrv) Run() {
+func (h *HttpServer) Run() {
 	h.router.GET("/health", h.handlerHealth)
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	h.router.GET("/kubeconfig/:access/:name", h.handlerKubeConfig)
 
-	// todo: get accounts from elsewere
-	accounts := gin.Accounts{
-		"admin":     "admin",
-		"test":      "test",
-		"alexander": "admin",
-		"foo":       "admin",
-		"bar":       "admin",
-	}
-
-	authorized := h.router.Group("/api/", gin.BasicAuth(accounts))
+	authorized := h.router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
 	authorized.GET("/kubeconfig", h.handlerKubeConfig)
 
-	h.router.Run(fmt.Sprintf(":%d", h.port))
+	h.router.Run(fmt.Sprintf(":%d", h.config.Port))
 }
 
-func (h *HttpSrv) handlerHealth(c *gin.Context) {
+func (h *HttpServer) handlerHealth(c *gin.Context) {
 	c.String(http.StatusOK, "ok")
 }
 
