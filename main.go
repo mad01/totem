@@ -16,4 +16,5 @@ func main() {
 // todo: get basic user to rbac cluster role binding mapping from yaml
 // todo: integrations with central auth oauth2
 
+// todo: change internal config of users to be map since list is O(n) and map is O(1)
 // todo: bug: ERRO[0048] serviceaccounts "alexander" already exists    file=http.go func=handlerKubeConfig line=55
