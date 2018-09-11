@@ -16,7 +16,7 @@ type User struct {
 }
 
 type Config struct {
-	Users       []*User `yaml:"users"`
+	Users       []User `yaml:"users"`
 	GinAccounts *gin.Accounts
 	Port        int
 }
@@ -49,7 +49,7 @@ func (c *Config) LoadGinAccounts() *gin.Accounts {
 
 func (c *Config) LoadDefaults() *Config {
 	log().Warn("loading default config")
-	users := []*User{
+	users := []User{
 		{Name: "admin", Password: "admin", AccessLevel: "admin", ClusterRoleBinding: "admin"},
 		{Name: "edit", Password: "edit", AccessLevel: "edit", ClusterRoleBinding: "edit"},
 		{Name: "view", Password: "view", AccessLevel: "view", ClusterRoleBinding: "view"},
