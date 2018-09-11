@@ -1,4 +1,4 @@
 ---
 users:
-  - {name: alexander, accessLevel: admin, clusterRoleBinding: admin, password: qwerty123}
-  - {name: test, accessLevel: view, clusterRoleBinding: view, password: qwerty123}
+  - {name: alexander, accessLevel: admin, clusterRole: admin, password: qwerty123}
+  - {name: test, accessLevel: view, clusterRole: view, password: qwerty123}

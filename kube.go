@@ -49,7 +49,7 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 			},
 		},
 		TypeMeta: meta_v1.TypeMeta{
-			Kind:       "ClusterRoleBinding",
+			Kind:       "ClusterRole",
 			APIVersion: "rbac.authorization.k8s.io/v1beta1",
 		},
 		RoleRef: rbac.RoleRef{
