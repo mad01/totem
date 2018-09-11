@@ -8,7 +8,8 @@ jobs:
       - run:
           name: build container
           command: make container
-
+          shell: /bin/bash
       - run:
           name: push container
           command: make container-push-travis
+          shell: /bin/bash
