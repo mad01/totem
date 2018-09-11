@@ -10,6 +10,14 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  branch = "master"
+  digest = "1:8f3727f779fee5c52bd3cd8c2901458f782bb74e5b80906ac0f7cb5a312887c9"
+  name = "github.com/cheekybits/is"
+  packages = ["."]
+  pruneopts = ""
+  revision = "68e9c0620927fb5427fda3708222d0edee89eae9"
+
+[[projects]]
   digest = "1:b13707423743d41665fd23f0c36b2f37bb49c30e94adb813319c44188a51ba22"
   name = "github.com/ghodss/yaml"
   packages = ["."]
@@ -530,6 +538,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/cheekybits/is",
     "github.com/gin-gonic/gin",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",

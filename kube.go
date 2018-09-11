@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mad01/totem/internal/try"
+
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -15,9 +17,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const annotation = "k8s.io.totem/managed"
-const annotationCreatedAt = "k8s.io.totem/created-at" // timeFormat
-const timeFormat = time.RFC3339
+const (
+	annotation          = "k8s.io.totem/managed"
+	annotationCreatedAt = "k8s.io.totem/created-at" // timeFormat
+	timeFormat          = time.RFC3339
+)
+
+var (
+	errorMissingCertData  = errors.New("missing cert data")
+	errorMissingTokenData = errors.New("missing token data")
+)
 
 type kubecfg struct {
 	cert        string
@@ -85,17 +94,46 @@ func (k *Kube) deleteClusterRoleBinding(name string) error {
 }
 
 func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
-	account, err := k.getServiceAccount(sa.Name)
+	getFn := func(sa *v1.ServiceAccount) (*v1.Secret, error) {
+		account, err := k.getServiceAccount(sa.Name)
+		if err != nil {
+			return nil, err
+		}
+		if len(account.Secrets) == 0 {
+			return nil, errors.New("no secrets found in service account object")
+		}
+		secret, err := k.client.CoreV1().Secrets(k.serviceAccountNamespace).Get(
+			account.Secrets[0].Name, meta_v1.GetOptions{},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(k.getSecretUserToken(secret)) < 10 {
+			return nil, errorMissingTokenData
+		}
+
+		if len(k.getSecretCaCert(secret)) < 10 {
+			return nil, errorMissingCertData
+		}
+
+		return secret, nil
+	}
+
+	var secret *v1.Secret
+	err := try.Do(func(attempt int) (bool, error) {
+		var err error
+		secret, err = getFn(sa)
+		if err != nil {
+			time.Sleep(500 * time.Millisecond) // wait a bit
+		}
+		return attempt < 5, err
+	})
 	if err != nil {
 		return nil, err
 	}
-	if len(account.Secrets) == 0 {
-		return nil, errors.New("no secrets found in service account object")
-	}
-	return k.client.CoreV1().Secrets(k.serviceAccountNamespace).Get(
-		account.Secrets[0].Name, meta_v1.GetOptions{},
-	)
 
+	return secret, nil
 }
 
 func (k *Kube) getSecretCaCert(secret *v1.Secret) string {
@@ -106,11 +144,11 @@ func (k *Kube) getSecretCaCert(secret *v1.Secret) string {
 	return ""
 }
 
-func (k *Kube) getSecretUserToken(secret *v1.Secret) (string, error) {
+func (k *Kube) getSecretUserToken(secret *v1.Secret) string {
 	if tokenB64, ok := secret.Data["token"]; ok {
-		return string(tokenB64), nil
+		return string(tokenB64)
 	}
-	return "", nil
+	return ""
 }
 
 func (k *Kube) getClusterRoleBindingList() (*rbac.ClusterRoleBindingList, error) {
@@ -136,16 +174,19 @@ func (k *Kube) getServiceAccountKubeConfig(clusterRole, name string) (string, er
 		return "", err
 	}
 
-	time.Sleep(time.Second * 2) //todo: add some retry login for getting secret to not have to sleep
 	secret, err := k.getSecret(account)
 	if errCheck(err) {
 		return "", err
 	}
 
 	cert := k.getSecretCaCert(secret)
-	token, err := k.getSecretUserToken(secret)
-	if errCheck(err) {
-		return "", err
+	if len(cert) < 10 {
+		return "", errorMissingCertData
+	}
+
+	token := k.getSecretUserToken(secret)
+	if len(token) < 10 {
+		return "", errorMissingTokenData
 	}
 
 	cfg := &kubecfg{}
