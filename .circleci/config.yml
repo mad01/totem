@@ -5,11 +5,18 @@ jobs:
       - image: debian:stretch
     steps:
       - checkout
+
       - run:
           name: build container
-          command: make container
           shell: /bin/bash
+          command: |
+            VERSION="$(hacks/git-version)"
+            docker build -t quay.io/mad01/totem:"${VERSION}" --file Dockerfile .
+
       - run:
           name: push container
-          command: make container-push-travis
           shell: /bin/bash
+          command: |
+            VERSION="$(hacks/git-version)"
+            docker login quay.io -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" ;
+            docker push quay.io/mad01/totem:"${VERSION}"
