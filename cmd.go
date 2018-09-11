@@ -39,7 +39,7 @@ func cmdRunController() *cobra.Command {
 			cfg := &Config{}
 			cfg.Load(config)
 			cfg.Port = port
-			log().Debugf("config: %q", cfg) // todo: remove
+			log().Debugf("config: %q", cfg)
 			controller := newController(kube, interval, tokenLifetime, cfg)
 			controller.Run()
 		},
