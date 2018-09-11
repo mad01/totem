@@ -45,23 +45,24 @@ func (h *HttpServer) handlerHealth(c *gin.Context) {
 	c.String(http.StatusOK, "ok")
 }
 
-func (h *HttpSrv) handlerKubeConfig(c *gin.Context) {
-	user := c.MustGet(gin.AuthUserKey).(string)
-	if accessLevel, ok := userAccessLevel[user]; ok {
-		cfg, err := h.kube.getServiceAccountKubeConfig(accessLevel, user)
-		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-			log().Error(err.Error())
+func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
+	username := c.MustGet(gin.AuthUserKey).(string)
+	for _, user := range h.config.Users {
+		if user.Name == username {
+			cfg, err := h.kube.getServiceAccountKubeConfig(user.AccessLevel, username)
+			if err != nil {
+				c.AbortWithStatus(http.StatusInternalServerError)
+				log().Error(err.Error())
+			}
+			log().Infof(
+				"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
+				h.kube.cluster,
+				user.AccessLevel,
+				username,
+			)
+			c.String(http.StatusOK, cfg)
+		} else {
+			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
 		}
-		log().Infof(
-			"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
-			h.kube.cluster,
-			accessLevel,
-			user,
-		)
-		c.String(http.StatusOK, cfg)
-	} else {
-		c.String(http.StatusInternalServerError, "Ops.. user did not have access configured)")
 	}
-
 }
