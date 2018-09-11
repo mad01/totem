@@ -127,7 +127,7 @@ func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
 		if err != nil {
 			time.Sleep(500 * time.Millisecond) // wait a bit
 		}
-		return attempt < 5, err
+		return attempt < 10, err
 	})
 	if err != nil {
 		return nil, err
