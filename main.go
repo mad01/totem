@@ -15,3 +15,5 @@ func main() {
 // todo: adding rbac setup to not show secrets as part of any view/edit/admin options
 // todo: get basic user to rbac cluster role binding mapping from yaml
 // todo: integrations with central auth oauth2
+
+// todo: bug: ERRO[0048] serviceaccounts "alexander" already exists    file=http.go func=handlerKubeConfig line=55
