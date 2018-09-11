@@ -54,8 +54,10 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 				username,
 			)
 			c.String(http.StatusOK, cfg)
+			break
 		} else {
 			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
+			break
 		}
 	}
 }
