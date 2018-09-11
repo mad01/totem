@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: buildpack-deps:trusty
+      - image: circleci/golang:1.11
     steps:
       - checkout
 
@@ -10,7 +10,6 @@ jobs:
 
       - run:
           name: build container
-          shell: /bin/bash
           command: |
             set -x
             VERSION="$(hacks/git-version)"
@@ -18,7 +17,6 @@ jobs:
 
       - run:
           name: push container
-          shell: /bin/bash
           command: |
             set -x
             VERSION="$(hacks/git-version)"
