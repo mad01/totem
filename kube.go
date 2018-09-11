@@ -34,15 +34,10 @@ type Kube struct {
 	cluster                 string
 }
 
-func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccount) error {
-	// access level should be for a start view/edit/admin
-	// options for the features is to add a config file with the allowed options
-	// and then it's expected that we are bootstrapping the cluster with the needed
-	// cluster role bindings to
-
+func (k *Kube) createClusterRoleBinding(clusterRole string, sa *v1.ServiceAccount) error {
 	crb := &rbac.ClusterRoleBinding{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", sa.Name, accessLevel),
+			Name: fmt.Sprintf("%s-%s", sa.Name, clusterRole),
 			Annotations: map[string]string{
 				annotation:          "",
 				annotationCreatedAt: time.Now().Format(timeFormat),
@@ -55,7 +50,7 @@ func (k *Kube) createClusterRoleBinding(accessLevel string, sa *v1.ServiceAccoun
 		RoleRef: rbac.RoleRef{
 			APIGroup: rbac.GroupName,
 			Kind:     "ClusterRole",
-			Name:     accessLevel,
+			Name:     clusterRole,
 		},
 		Subjects: []rbac.Subject{
 			{
@@ -130,13 +125,13 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
-func (k *Kube) getServiceAccountKubeConfig(accessLevel, name string) (string, error) {
+func (k *Kube) getServiceAccountKubeConfig(clusterRole, name string) (string, error) {
 	account, err := k.createServiceAccount(name)
 	if errCheck(err) {
 		return "", err
 	}
 
-	err = k.createClusterRoleBinding(accessLevel, account)
+	err = k.createClusterRoleBinding(clusterRole, account)
 	if errCheck(err) {
 		return "", err
 	}

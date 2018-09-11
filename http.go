@@ -8,13 +8,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var userAccessLevel = map[string]string{
-	"admin":     "admin",
-	"alexander": "admin",
-	"foo":       "edit",
-	"bar":       "view",
-}
-
 type HttpServer struct {
 	router         *gin.Engine
 	promController *PrometheusController
@@ -49,15 +42,15 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
 	for _, user := range h.config.Users {
 		if user.Name == username {
-			cfg, err := h.kube.getServiceAccountKubeConfig(user.AccessLevel, username)
+			cfg, err := h.kube.getServiceAccountKubeConfig(user.ClusterRole, username)
 			if err != nil {
 				c.AbortWithStatus(http.StatusInternalServerError)
 				log().Error(err.Error())
 			}
 			log().Infof(
-				"generated kube config for cluster: (%s) with access level: (%s) to (%s)",
+				"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
 				h.kube.cluster,
-				user.AccessLevel,
+				user.ClusterRole,
 				username,
 			)
 			c.String(http.StatusOK, cfg)

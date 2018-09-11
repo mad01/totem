@@ -11,7 +11,6 @@ import (
 type User struct {
 	Name        string `yaml:"name"`
 	Password    string `yaml:"password"`
-	AccessLevel string `yaml:"accessLevel"` // admin/edit/view
 	ClusterRole string `yaml:"clusterRole"`
 }
 
@@ -49,9 +48,9 @@ func (c *Config) LoadGinAccounts() *gin.Accounts {
 func (c *Config) LoadDefaults() *Config {
 	log().Warn("loading default config")
 	users := []User{
-		{Name: "admin", Password: "admin", AccessLevel: "admin", ClusterRole: "admin"},
-		{Name: "edit", Password: "edit", AccessLevel: "edit", ClusterRole: "edit"},
-		{Name: "view", Password: "view", AccessLevel: "view", ClusterRole: "view"},
+		{Name: "admin", Password: "admin", ClusterRole: "admin"},
+		{Name: "edit", Password: "edit", ClusterRole: "edit"},
+		{Name: "view", Password: "view", ClusterRole: "view"},
 	}
 	c.Users = users
 	c.GinAccounts = c.LoadGinAccounts()
