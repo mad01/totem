@@ -2,7 +2,6 @@ package main
 
 import (
 	b64 "encoding/base64"
-	"fmt"
 	"strings"
 	"time"
 
@@ -46,7 +45,7 @@ type Kube struct {
 func (k *Kube) createClusterRoleBinding(clusterRole string, sa *v1.ServiceAccount) error {
 	crb := &rbac.ClusterRoleBinding{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name: fmt.Sprintf("%s-%s", sa.Name, clusterRole),
+			Name: sa.Name,
 			Annotations: map[string]string{
 				annotation:          "",
 				annotationCreatedAt: time.Now().Format(timeFormat),
