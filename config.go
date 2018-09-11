@@ -35,7 +35,6 @@ func (c *Config) Load(path string) *Config {
 	}
 
 	c.GinAccounts = c.LoadGinAccounts()
-	log().Info(c)
 	return c
 }
 
