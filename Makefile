@@ -43,6 +43,9 @@ container-build:
 container-push:
 	@docker push $(CONTAINER):$(VERSION)
 
+container-push-travis:
+	@docker login quay.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
+	@make container-push
 
 deploy:
 	@sed -e "s/{{VERSION}}/${VERSION}/g;" template/deployment.yaml > deployment.yaml
