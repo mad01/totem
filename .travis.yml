@@ -5,3 +5,12 @@ services:
 
 script:
   - make container
+
+after_success:
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+      docker login quay.io -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" ;
+      make container-push ;
+    fi
+
+notifications:
+  email: false
