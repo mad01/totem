@@ -29,7 +29,8 @@ func (h *HttpServer) Run() {
 	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	authorized := h.router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
-	authorized.GET("/kubeconfig", h.handlerKubeConfig)
+	authorized.GET("/kube/config/create", h.handlerKubeConfig)
+	authorized.GET("/kube/config/revoke", h.handlerKubeConfigRevoke) // todo: should be delete on same as create
 
 	h.router.Run(fmt.Sprintf(":%d", h.config.Port))
 }
@@ -61,3 +62,36 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 		}
 	}
 }
+
+func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
+	username := c.MustGet(gin.AuthUserKey).(string)
+	for _, user := range h.config.Users {
+		if user.Name == username {
+			err := h.kube.deleteClusterRoleBinding(username)
+			if err != nil {
+				c.String(
+					http.StatusInternalServerError,
+					"Ops.. failed to remove cluster role binding (%s) )", username,
+				)
+				break
+			}
+			err = h.kube.deleteServiceAccount(username)
+			if err != nil {
+				c.String(
+					http.StatusInternalServerError,
+					"Ops.. failed to remove service account (%s) )", username,
+				)
+				break
+			}
+			c.String(http.StatusOK, "removed kube config for user (%s)", username)
+			break
+		} else {
+			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
+			break
+		}
+	}
+}
+
+//todo: change get kube config to get a new config every time.
+//todo: change create kube config to add lables with username to service account and cluster role binding
+//todo: change delete kube config to remove all service accounts and cluster role bindings matching username labels
