@@ -68,7 +68,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
 	for _, user := range h.config.Users {
 		if user.Name == username {
-			err := h.kube.deleteClusterRoleBinding(username)
+			err := h.kube.deleteClusterRoleBindings(username)
 			if err != nil {
 				c.String(
 					http.StatusInternalServerError,
@@ -76,7 +76,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 				)
 				break
 			}
-			err = h.kube.deleteServiceAccount(username)
+			err = h.kube.deleteServiceAccounts(username)
 			if err != nil {
 				c.String(
 					http.StatusInternalServerError,

@@ -94,7 +94,7 @@ func (k *Kube) createServiceAccount(name, username string) (*v1.ServiceAccount, 
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
 }
 
-func (k *Kube) deleteServiceAccount(username string) error {
+func (k *Kube) deleteServiceAccounts(username string) error {
 	log().Infof("delete of service accounts matching label %s=%s", annotationUsername, username)
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).DeleteCollection(
 		&meta_v1.DeleteOptions{},
@@ -105,7 +105,12 @@ func (k *Kube) deleteServiceAccount(username string) error {
 
 }
 
-func (k *Kube) deleteClusterRoleBinding(username string) error {
+func (k *Kube) deleteServiceAccount(name string) error {
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Delete(name, &meta_v1.DeleteOptions{})
+
+}
+
+func (k *Kube) deleteClusterRoleBindings(username string) error {
 	log().Infof("delete of cluster role binding matching label %s=%s", annotationUsername, username)
 	return k.client.RbacV1().ClusterRoleBindings().DeleteCollection(
 		&meta_v1.DeleteOptions{},
@@ -113,6 +118,10 @@ func (k *Kube) deleteClusterRoleBinding(username string) error {
 			LabelSelector: fmt.Sprintf("%s=%s", annotationUsername, username),
 		},
 	)
+}
+
+func (k *Kube) deleteClusterRoleBinding(name string) error {
+	return k.client.RbacV1().ClusterRoleBindings().Delete(name, &meta_v1.DeleteOptions{})
 }
 
 func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
