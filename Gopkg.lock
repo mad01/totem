@@ -3,6 +3,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:ef63d3d851319b9c8b9e9b68544094478320aa0333deb0d36f11de91e4c59be2"
+  name = "github.com/DeanThompson/ginpprof"
+  packages = ["."]
+  pruneopts = ""
+  revision = "8c0e31bfeaa87bd40412ee8a8ba383f5f700ff72"
+
+[[projects]]
+  branch = "master"
   digest = "1:c0bec5f9b98d0bc872ff5e834fac186b807b656683bd29cb82fb207a1513fabb"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -555,6 +563,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/DeanThompson/ginpprof",
     "github.com/cheekybits/is",
     "github.com/gin-gonic/gin",
     "github.com/pkg/errors",
