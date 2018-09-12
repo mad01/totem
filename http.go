@@ -45,8 +45,9 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 		if user.Name == username {
 			cfg, err := h.kube.getServiceAccountKubeConfig(user.ClusterRole, username)
 			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
+				c.String(http.StatusInternalServerError, err.Error())
 				log().Error(err.Error())
+				break
 			}
 			log().Infof(
 				"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
