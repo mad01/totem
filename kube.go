@@ -2,8 +2,11 @@ package main
 
 import (
 	b64 "encoding/base64"
+	"fmt"
 	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/uuid"
 
 	"github.com/mad01/totem/internal/try"
 
@@ -18,6 +21,7 @@ import (
 
 const (
 	annotation          = "k8s.io.totem/managed"
+	annotationUsername  = "k8s.io.totem/username"
 	annotationCreatedAt = "k8s.io.totem/created-at" // timeFormat
 	timeFormat          = time.RFC3339
 )
@@ -42,13 +46,16 @@ type Kube struct {
 	cluster                 string
 }
 
-func (k *Kube) createClusterRoleBinding(clusterRole string, sa *v1.ServiceAccount) error {
+func (k *Kube) createClusterRoleBinding(clusterRole, username string, sa *v1.ServiceAccount) error {
 	crb := &rbac.ClusterRoleBinding{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: sa.Name,
 			Annotations: map[string]string{
 				annotation:          "",
 				annotationCreatedAt: time.Now().Format(timeFormat),
+			},
+			Labels: map[string]string{
+				annotationUsername: username,
 			},
 		},
 		TypeMeta: meta_v1.TypeMeta{
@@ -73,23 +80,37 @@ func (k *Kube) createClusterRoleBinding(clusterRole string, sa *v1.ServiceAccoun
 	return nil
 }
 
-func (k *Kube) createServiceAccount(name string) (*v1.ServiceAccount, error) {
+func (k *Kube) createServiceAccount(name, username string) (*v1.ServiceAccount, error) {
 	sa := &v1.ServiceAccount{}
 	sa.Name = name
 	sa.Annotations = map[string]string{
 		annotation:          "",
 		annotationCreatedAt: time.Now().Format(timeFormat),
 	}
+	sa.Labels = map[string]string{
+		annotationUsername: username,
+	}
 
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Create(sa)
 }
 
-func (k *Kube) deleteServiceAccount(name string) error {
-	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Delete(name, &meta_v1.DeleteOptions{})
+func (k *Kube) deleteServiceAccount(username string) error {
+	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).DeleteCollection(
+		&meta_v1.DeleteOptions{},
+		meta_v1.ListOptions{
+			LabelSelector: fmt.Sprintf("%s=%s", annotationUsername, username),
+		},
+	)
+
 }
 
-func (k *Kube) deleteClusterRoleBinding(name string) error {
-	return k.client.RbacV1().ClusterRoleBindings().Delete(name, &meta_v1.DeleteOptions{})
+func (k *Kube) deleteClusterRoleBinding(username string) error {
+	return k.client.RbacV1().ClusterRoleBindings().DeleteCollection(
+		&meta_v1.DeleteOptions{},
+		meta_v1.ListOptions{
+			LabelSelector: fmt.Sprintf("%s=%s", annotationUsername, username),
+		},
+	)
 }
 
 func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
@@ -162,13 +183,14 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
-func (k *Kube) getServiceAccountKubeConfig(clusterRole, name string) (string, error) {
-	account, err := k.createServiceAccount(name)
+func (k *Kube) getServiceAccountKubeConfig(clusterRole, username string) (string, error) {
+	name := fmt.Sprintf("%s", uuid.NewUUID())
+	account, err := k.createServiceAccount(name, username)
 	if errCheck(err) {
 		return "", err
 	}
 
-	err = k.createClusterRoleBinding(clusterRole, account)
+	err = k.createClusterRoleBinding(clusterRole, username, account)
 	if errCheck(err) {
 		return "", err
 	}
