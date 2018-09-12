@@ -95,6 +95,7 @@ func (k *Kube) createServiceAccount(name, username string) (*v1.ServiceAccount, 
 }
 
 func (k *Kube) deleteServiceAccount(username string) error {
+	log().Infof("delete of service accounts matching label %s=%s", annotationUsername, username)
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).DeleteCollection(
 		&meta_v1.DeleteOptions{},
 		meta_v1.ListOptions{
@@ -105,6 +106,7 @@ func (k *Kube) deleteServiceAccount(username string) error {
 }
 
 func (k *Kube) deleteClusterRoleBinding(username string) error {
+	log().Infof("delete of cluster role binding matching label %s=%s", annotationUsername, username)
 	return k.client.RbacV1().ClusterRoleBindings().DeleteCollection(
 		&meta_v1.DeleteOptions{},
 		meta_v1.ListOptions{
