@@ -8,8 +8,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/uuid"
 
-	"github.com/mad01/totem/internal/try"
-
 	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -151,20 +149,20 @@ func (k *Kube) getSecret(sa *v1.ServiceAccount) (*v1.Secret, error) {
 		return secret, nil
 	}
 
-	var secret *v1.Secret
-	err := try.Do(func(attempt int) (bool, error) {
-		var err error
-		secret, err = getFn(sa)
-		if err != nil {
-			time.Sleep(500 * time.Millisecond) // wait a bit
+	attempt := 0
+	retriesMax := 5
+	for {
+		log().Warnf("get secret retry (%d)", attempt)
+		secret, err := getFn(sa)
+		if err != nil && attempt < retriesMax {
+			attempt++
+		} else {
+			return secret, nil
 		}
-		return attempt < 10, err
-	})
-	if err != nil {
-		return nil, err
+		time.Sleep(time.Second)
 	}
 
-	return secret, nil
+	return nil, nil
 }
 
 func (k *Kube) getSecretCaCert(secret *v1.Secret) string {

@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HttpServer struct {
-	router         *gin.Engine
 	promController *PrometheusController
 	kube           *Kube
 	config         *Config
@@ -17,7 +18,6 @@ type HttpServer struct {
 
 func newHttpServer(kube *Kube, config *Config) *HttpServer {
 	return &HttpServer{
-		router:         gin.Default(),
 		promController: &PrometheusController{},
 		kube:           kube,
 		config:         config,
@@ -25,14 +25,23 @@ func newHttpServer(kube *Kube, config *Config) *HttpServer {
 }
 
 func (h *HttpServer) Run() {
-	h.router.GET("/health", h.handlerHealth)
-	h.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	router := gin.Default()
 
-	authorized := h.router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
-	authorized.GET("/kube/config/create", h.handlerKubeConfig)
-	authorized.GET("/kube/config/revoke", h.handlerKubeConfigRevoke) // todo: should be delete on same as create
+	router.GET("/health", h.handlerHealth)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	h.router.Run(fmt.Sprintf(":%d", h.config.Port))
+	// kube config endpoints
+	authorized := router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
+	authorized.GET("/kubeconfig", h.handlerKubeConfig)
+	authorized.DELETE("/kubeconfig", h.handlerKubeConfigRevoke)
+
+	// pprof endpoints
+	router.GET("/debug/pprof/", gin.WrapF(pprof.Index))
+	router.GET("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
+	router.GET("/debug/pprof/profile", gin.WrapF(pprof.Profile))
+	router.GET("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
+
+	router.Run(fmt.Sprintf(":%d", h.config.Port))
 }
 
 func (h *HttpServer) handlerHealth(c *gin.Context) {
@@ -47,7 +56,7 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				log().Error(err.Error())
-				break
+				return
 			}
 			log().Infof(
 				"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
@@ -56,10 +65,10 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 				username,
 			)
 			c.String(http.StatusOK, cfg)
-			break
+			return
 		} else {
 			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			break
+			return
 		}
 	}
 }
@@ -74,7 +83,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 					http.StatusInternalServerError,
 					"Ops.. failed to remove cluster role binding (%s) )", username,
 				)
-				break
+				return
 			}
 			err = h.kube.deleteServiceAccounts(username)
 			if err != nil {
@@ -82,13 +91,13 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 					http.StatusInternalServerError,
 					"Ops.. failed to remove service account (%s) )", username,
 				)
-				break
+				return
 			}
 			c.String(http.StatusOK, "removed kube config for user (%s)", username)
-			break
+			return
 		} else {
 			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			break
+			return
 		}
 	}
 }
