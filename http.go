@@ -30,10 +30,12 @@ func (h *HttpServer) Run() {
 	router.GET("/health", h.handlerHealth)
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
+	// kube config endpoints
 	authorized := router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
 	authorized.GET("/kubeconfig", h.handlerKubeConfig)
 	authorized.DELETE("/kubeconfig", h.handlerKubeConfigRevoke)
 
+	// pprof endpoints
 	router.GET("/debug/pprof/", gin.WrapF(pprof.Index))
 	router.GET("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
 	router.GET("/debug/pprof/profile", gin.WrapF(pprof.Profile))
