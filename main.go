@@ -20,3 +20,6 @@ func main() {
 
 // todo: change internal config of users to be map since list is O(n) and map is O(1)
 // todo: bug: ERRO[0048] serviceaccounts "alexander" already exists    file=http.go func=handlerKubeConfig line=55
+
+// todo: bug: when internaly running the service in a cluster the server address is the internal, need to use the
+// dns name to get it to work
