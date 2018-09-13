@@ -31,8 +31,8 @@ func (h *HttpServer) Run() {
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	authorized := router.Group("/api/", gin.BasicAuth(*h.config.GinAccounts))
-	authorized.GET("/kube/config/create", h.handlerKubeConfig)
-	authorized.GET("/kube/config/revoke", h.handlerKubeConfigRevoke) // todo: should be delete on same as create
+	authorized.GET("/kubeconfig", h.handlerKubeConfig)
+	authorized.DELETE("/kubeconfig", h.handlerKubeConfigRevoke)
 
 	router.GET("/debug/pprof/", gin.WrapF(pprof.Index))
 	router.GET("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
