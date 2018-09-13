@@ -42,6 +42,7 @@ type Kube struct {
 	restConfig              *rest.Config
 	serviceAccountNamespace string
 	cluster                 string
+	clusterDNS              string
 }
 
 func (k *Kube) createClusterRoleBinding(clusterRole, username string, sa *v1.ServiceAccount) error {
@@ -224,7 +225,7 @@ func (k *Kube) getServiceAccountKubeConfig(clusterRole, username string) (string
 	cfg.token = token
 	cfg.cert = cert
 	cfg.clusterName = k.cluster
-	cfg.serverUrl = k.restConfig.Host
+	cfg.serverUrl = k.clusterDNS
 
 	return k.generateKubeConfig(cfg), nil
 }

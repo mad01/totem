@@ -25,7 +25,7 @@ spec:
             - "totem"
           args:
             - "controller"
-            - "--cluster=minikube"
+            - "--cluster.name=minikube"
             - "--token.lifetime=10m"
             - "--config=/config.yaml"
             - "--namespace=config"

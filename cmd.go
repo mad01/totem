@@ -21,7 +21,7 @@ func cmdVersion() *cobra.Command {
 }
 
 func cmdRunController() *cobra.Command {
-	var kubeconfig, namespace, cluster, config string
+	var kubeconfig, namespace, clusterName, config, clusterAddr string
 	var verbose bool
 	var interval, tokenLifetime time.Duration
 	var port int
@@ -34,7 +34,8 @@ func cmdRunController() *cobra.Command {
 
 			kube := newKube(kubeconfig)
 			kube.serviceAccountNamespace = namespace
-			kube.cluster = cluster
+			kube.cluster = clusterName
+			kube.clusterDNS = clusterAddr
 
 			cfg := &Config{}
 			cfg.Load(config)
@@ -50,13 +51,14 @@ func cmdRunController() *cobra.Command {
 		"config", "u", "",
 		"path to config. config contains user/role mapping",
 	)
-	command.Flags().StringVarP(&cluster, "cluster", "c", "default", "name of k8s cluster")
+	command.Flags().StringVarP(&clusterAddr, "cluster.addr", "a", "", "public dns to api cluster")
+	command.Flags().StringVarP(&clusterName, "cluster.name", "c", "default", "name of k8s cluster")
 	command.Flags().StringVarP(
 		&namespace,
 		"namespace", "n",
 		"default", "ns where the service accounts and cluster role bindings is created",
 	)
-	command.Flags().IntVarP(&port, "http.port", "p", 8080, "http server port")
+	command.Flags().IntVarP(&port, "http.port", "p", 8080, "port to expose service on")
 	command.Flags().DurationVarP(
 		&interval,
 		"interval", "i",
@@ -71,7 +73,8 @@ func cmdRunController() *cobra.Command {
 	)
 	command.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
-	command.MarkFlagRequired("cluster")
+	command.MarkFlagRequired("cluster.addr")
+	command.MarkFlagRequired("cluster.name")
 
 	return command
 }
