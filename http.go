@@ -54,7 +54,7 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				log().Error(err.Error())
-				break
+				return
 			}
 			log().Infof(
 				"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
@@ -63,10 +63,10 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 				username,
 			)
 			c.String(http.StatusOK, cfg)
-			break
+			return
 		} else {
 			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			break
+			return
 		}
 	}
 }
@@ -81,7 +81,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 					http.StatusInternalServerError,
 					"Ops.. failed to remove cluster role binding (%s) )", username,
 				)
-				break
+				return
 			}
 			err = h.kube.deleteServiceAccounts(username)
 			if err != nil {
@@ -89,13 +89,13 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 					http.StatusInternalServerError,
 					"Ops.. failed to remove service account (%s) )", username,
 				)
-				break
+				return
 			}
 			c.String(http.StatusOK, "removed kube config for user (%s)", username)
-			break
+			return
 		} else {
 			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			break
+			return
 		}
 	}
 }
