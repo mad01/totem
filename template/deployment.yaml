@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: totem
-  namespace: system
+  namespace: config
 spec:
   replicas: 1
   template:
@@ -14,15 +14,78 @@ spec:
       serviceAccount: totem
       containers:
         - name: totem
-          image: {{CONTAINER}}:{{VERSION}}
+          image: quay.io/mad01/totem:{{VERSION}}
           command:
-            - "./totem"
+            - "totem"
           args:
             - "controller"
+            - "--cluster=minikube"
+            - "--token.lifetime=10m"
+            - "--config=/config.yaml"
+            - "--namespace=config"
+            - "-v"
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: totem-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: totem-config
+  namespace: config
+data:
+  config.yaml: |
+    ---
+    users:
+      - {name: alexander, clusterRole: admin, password: qwerty123}
+      - {name: test, clusterRole: view, password: qwerty123}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: totem
+  namespace: config
+spec:
+  selector:
+    app: totem
+  ports:
+  - name: api
+    protocol: TCP
+    port: 8080
+  type: ClusterIP
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: system
+  namespace: config
   name: totem
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: config
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: totem
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: totem
+  namespace: config
