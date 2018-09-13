@@ -72,7 +72,6 @@ func cmdRunController() *cobra.Command {
 	command.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	command.MarkFlagRequired("cluster")
-	command.MarkFlagRequired("kube.config")
 
 	return command
 }
