@@ -54,7 +54,6 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 				continue
 			}
 
-			// todo: bug: fix so we are taking username from annotation to remove or att new func to remove just one not collection
 			if !inTimeSpan(createdAt, c.tokenLifetime) {
 				err = c.kube.deleteServiceAccount(sa.Name)
 				if err != nil {
@@ -84,7 +83,6 @@ func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
 				continue
 			}
 
-			// todo: bug: fix so we are taking username from annotation to remove or att new func to remove just one not collection
 			if !inTimeSpan(createdAt, c.tokenLifetime) {
 				err = c.kube.deleteClusterRoleBinding(crb.Name)
 				if err != nil {

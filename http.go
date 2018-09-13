@@ -101,7 +101,3 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 		}
 	}
 }
-
-//todo: change get kube config to get a new config every time.
-//todo: change create kube config to add lables with username to service account and cluster role binding
-//todo: change delete kube config to remove all service accounts and cluster role bindings matching username labels
