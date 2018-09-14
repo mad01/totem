@@ -14,3 +14,39 @@ To allow the solution to run both when we have access to the master and can conf
 
 ### Usage
 
+
+get config for youre user
+```
+http -a username:pass GET http://example.com:8080/api/kubeconfig > config
+KUBECONFIG=config kubectl get pods 
+
+http -a username:pass DELETE http://example.com:8080/api/kubeconfig
+```
+
+
+revoke config for your user
+```
+http -a username:pass DELETE http://example.com:8080/api/kubeconfig
+```
+
+
+
+#### cli controller flags
+```
+run the controller
+
+Usage:
+  totem controller [flags]
+
+Flags:
+  -a, --cluster.addr string       public dns to api cluster
+  -c, --cluster.name string       name of k8s cluster (default "default")
+  -u, --config string             path to config. config contains user/role mapping
+  -h, --help                      help for controller
+  -p, --http.port int             port to expose service on (default 8080)
+  -i, --interval duration         the interval in which the cleanup of old token runs (default 1m0s)
+  -k, --kube.config string        outside clusterName path to kube config
+  -n, --namespace string          ns where the service accounts and clusterName role bindings is created (default "default")
+  -l, --token.lifetime duration   the time that a kube config is valid for (default 1h0m0s)
+  -v, --verbose                   verbose output
+```
