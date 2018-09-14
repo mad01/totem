@@ -3,15 +3,12 @@ CONTAINER=quay.io/mad01/totem
 VERSION ?= $(shell ./hacks/git-version)
 LD_FLAGS="-X main.Version=$(VERSION) -w -s -extldflags \"-static\" "
 
-$( shell mkdir -p _bin )
-$( shell mkdir -p _release )
-
 
 default: format format-verify build-dev
 
 
 clean:
-	@rm -r _bin _release
+	@rm -r _bin _deploy _release
 
 
 test: format-verify
@@ -45,8 +42,9 @@ container-push:
 
 
 deploy:
-	@sed -e "s/{{VERSION}}/${VERSION}/g;" template/deployment.yaml > deployment.yaml
-	@kubectl apply -f deployment.yaml
+	@mkdir -p _deploy
+	@sed -e "s/{{VERSION}}/${VERSION}/g;" template/deployment.yaml > _deploy/deployment.yaml
+	@kubectl apply -f _deploy/deployment.yaml
 
 
 dep:

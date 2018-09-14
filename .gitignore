@@ -5,3 +5,4 @@ _release
 .idea
 ./deployment.yaml
 vendor/
+_deploy
