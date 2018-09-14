@@ -20,5 +20,5 @@ jobs:
           command: |
             set -x
             VERSION="$(hacks/git-version)"
-            docker login quay.io -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" ;
+            echo "${DOCKER_PASSWORD}" | docker login quay.io -u "${DOCKER_USERNAME}" --password-stdin ;
             docker push quay.io/mad01/totem:"${VERSION}"
