@@ -14,45 +14,68 @@ type User struct {
 	ClusterRole string `yaml:"clusterRole"`
 }
 
+type Users struct {
+	Users []User `yaml:"users"`
+}
+
 type Config struct {
-	Users       []User `yaml:"users"`
+	Users       map[string]User
 	GinAccounts *gin.Accounts
 	Port        int
 }
 
 func (c *Config) Load(path string) *Config {
+	if c.Users == nil {
+		c.Users = make(map[string]User)
+	}
+
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log().Printf("yamlFile.Get err #%v ", err)
 		return c.LoadDefaults()
 	}
 
-	err = yaml.Unmarshal([]byte(data), c)
+	users := &Users{}
+	err = yaml.Unmarshal([]byte(data), users)
 	if err != nil {
 		log().Error(err)
 		return c.LoadDefaults()
 	}
 
-	c.GinAccounts = c.LoadGinAccounts()
+	c.LoadUsers(users)
 	return c
 }
 
-func (c *Config) LoadGinAccounts() *gin.Accounts {
+func (c *Config) LoadUsers(u *Users) {
+	log().Warn("loading users")
+	users := make(map[string]User)
 	accounts := make(gin.Accounts)
-	for _, user := range c.Users {
+
+	for _, user := range u.Users {
+		users[user.Name] = user
 		accounts[user.Name] = user.Password
 	}
-	return &accounts
+
+	c.Users = users
+	c.GinAccounts = &accounts
+
+	return
 }
 
 func (c *Config) LoadDefaults() *Config {
 	log().Warn("loading default config")
-	users := []User{
+	defaults := []User{
 		{Name: "admin", Password: "admin", ClusterRole: "admin"},
 		{Name: "edit", Password: "edit", ClusterRole: "edit"},
 		{Name: "view", Password: "view", ClusterRole: "view"},
 	}
-	c.Users = users
-	c.GinAccounts = c.LoadGinAccounts()
+	users := make(map[string]User)
+	accounts := make(gin.Accounts)
+
+	for _, user := range defaults {
+		users[user.Name] = user
+		accounts[user.Name] = user.Password
+	}
+
 	return c
 }
