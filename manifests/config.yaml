@@ -1,4 +1,6 @@
 ---
 users:
   - {name: alexander, clusterRole: admin, password: qwerty123}
-  - {name: test, clusterRole: view, password: qwerty123}
+  - {name: admin, clusterRole: admin-no-secrets, password: qwerty123}
+  - {name: edit, clusterRole: edit-no-secrets, password: qwerty123}
+  - {name: view, clusterRole: view-no-secrets, password: qwerty123}
