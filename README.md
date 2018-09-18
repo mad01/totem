@@ -18,8 +18,6 @@ Adding a new user. you need to update the deployment config map with the new use
 
 
 ### Usage
-
-
 get config for youre user
 ```bash
 http -a username:pass GET http://example.com:8080/api/kubeconfig > config
@@ -47,6 +45,14 @@ users:
   - {name: alexander, clusterRole: admin, password: qwerty123}
   - {name: test, clusterRole: view, password: qwerty123}
 ```
+
+
+#### deployment
+start with the `template/deployment.yaml` as the base.
+* `ADDR` fill in the address of the kubernetes api server
+* `NAME` fill in the name of the cluster
+* `VERSION` fill in the container version
+
 
 
 #### cli controller flags
