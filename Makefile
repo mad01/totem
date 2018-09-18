@@ -29,7 +29,8 @@ build-dev:
 
 build-release:
 	@echo "----- running release build -----"
-	@go build -v -o _release/$(REPO) -ldflags $(LD_FLAGS) 
+	@env GOOS=darwin GOARCH=amd64 go build -v -o _release/$(REPO)-darwin-amd64 -ldflags $(LD_FLAGS) 
+	@env GOOS=linux GOARCH=amd64 go build -v -o _release/$(REPO)-linux-amd64 -ldflags $(LD_FLAGS) 
 
 
 container: container-build
