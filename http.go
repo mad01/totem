@@ -50,51 +50,49 @@ func (h *HttpServer) handlerHealth(c *gin.Context) {
 
 func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
-	for _, user := range h.config.Users {
-		if user.Name == username {
-			cfg, err := h.kube.getServiceAccountKubeConfig(user.ClusterRole, username)
-			if err != nil {
-				c.String(http.StatusInternalServerError, err.Error())
-				log().Error(err.Error())
-				return
-			}
-			log().Infof(
-				"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
-				h.kube.cluster,
-				user.ClusterRole,
-				username,
-			)
-			c.String(http.StatusOK, cfg)
+	if user, ok := h.config.Users[username]; ok {
+		cfg, err := h.kube.getServiceAccountKubeConfig(user.ClusterRole, username)
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			log().Error(err.Error())
 			return
 		}
+		log().Infof(
+			"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
+			h.kube.cluster,
+			user.ClusterRole,
+			username,
+		)
+		c.String(http.StatusOK, cfg)
+		return
 	}
+
 	// return default
 	c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
 }
 
 func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
-	for _, user := range h.config.Users {
-		if user.Name == username {
-			err := h.kube.deleteClusterRoleBindings(username)
-			if err != nil {
-				c.String(
-					http.StatusInternalServerError,
-					"Ops.. failed to remove cluster role binding (%s) )", username,
-				)
-				return
-			}
-			err = h.kube.deleteServiceAccounts(username)
-			if err != nil {
-				c.String(
-					http.StatusInternalServerError,
-					"Ops.. failed to remove service account (%s) )", username,
-				)
-				return
-			}
-			c.String(http.StatusOK, "removed kube config for user (%s)", username)
+
+	if _, ok := h.config.Users[username]; ok {
+		err := h.kube.deleteClusterRoleBindings(username)
+		if err != nil {
+			c.String(
+				http.StatusInternalServerError,
+				"Ops.. failed to remove cluster role binding (%s) )", username,
+			)
 			return
 		}
+		err = h.kube.deleteServiceAccounts(username)
+		if err != nil {
+			c.String(
+				http.StatusInternalServerError,
+				"Ops.. failed to remove service account (%s) )", username,
+			)
+			return
+		}
+		c.String(http.StatusOK, "removed kube config for user (%s)", username)
+		return
 	}
 
 	// return default
