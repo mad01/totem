@@ -41,17 +41,12 @@ container-push:
 	@docker push $(CONTAINER):$(VERSION)
 
 
-deploy:
-	@mkdir -p _deploy
-	@sed -e "s/{{VERSION}}/${VERSION}/g;" template/deployment.yaml > _deploy/deployment.yaml
-	@kubectl apply -f _deploy/deployment.yaml
-
-
 dep:
 	@dep ensure -v -vendor-only
 
 
 setup-deps:
+	@pip install yq
 	@go get -u github.com/golang/dep/cmd/dep
 	@go get -u golang.org/x/tools/cmd/goimports
 

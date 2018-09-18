@@ -25,8 +25,8 @@ spec:
             - "totem"
           args:
             - "controller"
-            - "--cluster.name=minikube"
-            - "--cluster.addr=https://localhost:443"
+            - "--cluster.name={{NAME}}"
+            - "--cluster.addr={{ADDR}}"
             - "--token.lifetime=10m"
             - "--config=/config.yaml"
             - "--namespace=config"
