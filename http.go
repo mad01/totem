@@ -66,11 +66,10 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 			)
 			c.String(http.StatusOK, cfg)
 			return
-		} else {
-			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			return
 		}
 	}
+	// return default
+	c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
 }
 
 func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
@@ -95,9 +94,9 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 			}
 			c.String(http.StatusOK, "removed kube config for user (%s)", username)
 			return
-		} else {
-			c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
-			return
 		}
 	}
+
+	// return default
+	c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
 }
