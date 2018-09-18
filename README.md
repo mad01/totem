@@ -1,5 +1,6 @@
 # totem
 [![CircleCI](https://circleci.com/gh/mad01/totem.svg?style=svg)](https://circleci.com/gh/mad01/totem)
+[![Docker Repository on Quay](https://quay.io/repository/mad01/totem/status "Docker Repository on Quay")](https://quay.io/repository/mad01/totem)
 
 ### Problem statement
 1. Managment of kube configs when multiple orgs and teams are involved.
