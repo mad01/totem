@@ -19,8 +19,6 @@ get config for youre user
 ```
 http -a username:pass GET http://example.com:8080/api/kubeconfig > config
 KUBECONFIG=config kubectl get pods 
-
-http -a username:pass DELETE http://example.com:8080/api/kubeconfig
 ```
 
 
