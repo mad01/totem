@@ -16,17 +16,32 @@ To allow the solution to run both when we have access to the master and can conf
 
 
 get config for youre user
-```
+```bash
 http -a username:pass GET http://example.com:8080/api/kubeconfig > config
 KUBECONFIG=config kubectl get pods 
 ```
 
 
 revoke config for your user
-```
+```bash
 http -a username:pass DELETE http://example.com:8080/api/kubeconfig
 ```
 
+
+#### config 
+the config only contains the users currently. The way you can manage different
+levels of access, is by defining a cluster role. The cluster role will then be 
+bound to the service account for the user with a cluster role binding
+
+example config were we use the defualt admin and view cluster roles. The 
+alexander user will get bound to the admin cluster role, and the test user 
+will be bound to the view cluster role
+```yaml
+---
+users:
+  - {name: alexander, clusterRole: admin, password: qwerty123}
+  - {name: test, clusterRole: view, password: qwerty123}
+```
 
 
 #### cli controller flags
