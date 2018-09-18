@@ -28,7 +28,6 @@ rules:
   - persistentvolumeclaims
   - replicationcontrollers
   - replicationcontrollers/scale
-  - serviceaccounts
   - services
   - services/proxy
   verbs:
@@ -170,17 +169,3 @@ rules:
   - localsubjectaccessreviews
   verbs:
   - create
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - rolebindings
-  - roles
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch

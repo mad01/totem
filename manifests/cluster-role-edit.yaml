@@ -28,7 +28,6 @@ rules:
   - persistentvolumeclaims
   - replicationcontrollers
   - replicationcontrollers/scale
-  - serviceaccounts
   - services
   - services/proxy
   verbs:

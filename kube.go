@@ -194,7 +194,7 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 }
 
 func (k *Kube) getServiceAccountKubeConfig(clusterRole, username string) (string, error) {
-	name := fmt.Sprintf("%s", uuid.NewUUID())
+	name := fmt.Sprintf("%s-%s", username, uuid.NewUUID())
 	account, err := k.createServiceAccount(name, username)
 	if errCheck(err) {
 		return "", err

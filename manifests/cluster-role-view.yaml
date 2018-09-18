@@ -12,7 +12,6 @@ rules:
   - pods
   - replicationcontrollers
   - replicationcontrollers/scale
-  - serviceaccounts
   - services
   verbs:
   - get
