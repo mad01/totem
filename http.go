@@ -95,7 +95,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 			)
 			return
 		}
-		metricRevokedHTTPTokens.WithLabelValues(username, "success", "http").Inc()
+		metricRevokedHTTPTokens.WithLabelValues(username, "success").Inc()
 		c.String(http.StatusOK, "removed kube config for user (%s)", username)
 		return
 	}

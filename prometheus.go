@@ -22,6 +22,17 @@ var (
 		Help: "number revoked kube configs"},
 		[]string{"username", "status"},
 	)
+	metricRevokedCleanupTokens = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: getMetricPrefix("revoked_cleanup_configs"),
+		Help: "number revoked kube configs"},
+		[]string{"status", "kind"},
+	)
+
+	metricActiveTokens = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: getMetricPrefix("currently_active_kube_configs"),
+		Help: "number active kube configs"},
+		[]string{},
+	)
 )
 
 func getMetricPrefix(name string) string {
@@ -34,4 +45,6 @@ type PrometheusController struct {
 func (p *PrometheusController) registerMetrics() {
 	prometheus.MustRegister(metricIssuedTokens)
 	prometheus.MustRegister(metricRevokedHTTPTokens)
+	prometheus.MustRegister(metricRevokedCleanupTokens)
+	prometheus.MustRegister(metricActiveTokens)
 }

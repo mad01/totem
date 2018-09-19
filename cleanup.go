@@ -48,6 +48,10 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 			createdAt, err := time.Parse(timeFormat, createdAtString)
 			if err != nil {
 				log().Errorf("parsing annotation of service account (%s): %v", sa.Name, err)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"error-parsing-annotation",
+					"service-account",
+				).Inc()
 				continue
 			}
 
@@ -58,14 +62,15 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 					continue
 				}
 				log().Infof("service account (%s) outside time span, deleting it", sa.Name)
-				metricRevokedHTTPTokens.WithLabelValues(username, "success", "cleanup").Inc()
+				metricRevokedCleanupTokens.WithLabelValues(
+					"success",
+					"service-account",
+				).Inc()
 			} else if inTimeSpan(createdAt, c.tokenLifetime) {
 				log().Infof("service account (%s) still in time span ", sa.Name)
 			}
-
 		}
 	}
-
 }
 
 func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
@@ -78,6 +83,10 @@ func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
 			createdAt, err := time.Parse(timeFormat, createdAtString)
 			if err != nil {
 				log().Errorf("parsing of cluster role binding (%s): %v", crb.Name, err)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"error-parsing-annotation",
+					"cluster-role-binding",
+				).Inc()
 				continue
 			}
 
@@ -88,13 +97,15 @@ func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
 					continue
 				}
 				log().Infof("cluster role binding (%s) outside time span, deleting it ", crb.Name)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"success",
+					"cluster-role-binding",
+				).Inc()
 			} else if inTimeSpan(createdAt, c.tokenLifetime) {
 				log().Infof("cluster role binding (%s) still in time span ", crb.Name)
 			}
-
 		}
 	}
-
 }
 
 func inTimeSpan(start time.Time, lifetime time.Duration) bool {
