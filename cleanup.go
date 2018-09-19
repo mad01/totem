@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -34,7 +33,7 @@ func (c *cleanupController) Run() {
 
 func (c *cleanupController) worker(stopChan chan struct{}) {
 	for {
-		fmt.Sprintf("cleanup tick")
+		log().Info("cleanup tick")
 		c.deleteTimedOutClusterRoleBindings()
 		c.deleteTimedOutServiceAccounts()
 		time.Sleep(c.interval)
