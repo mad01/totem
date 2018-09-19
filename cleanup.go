@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -9,7 +8,6 @@ type cleanupController struct {
 	interval      time.Duration
 	tokenLifetime time.Duration
 	kube          *Kube
-	stopChan      chan struct{}
 }
 
 func newCleanupController(kube *Kube, interval, lifetime time.Duration) *cleanupController {
@@ -17,24 +15,23 @@ func newCleanupController(kube *Kube, interval, lifetime time.Duration) *cleanup
 		interval:      interval,
 		tokenLifetime: lifetime,
 		kube:          kube,
-		stopChan:      make(chan struct{}),
 	}
 	return c
 }
 
-func (c *cleanupController) Run() {
+func (c *cleanupController) Run(stop chan struct{}) {
 	log().Info("Starting cleanup controller")
 
-	go c.worker(c.stopChan)
-	<-c.stopChan // block until stopchan closed
+	go c.worker()
+	<-stop // block until stop closed
 
 	log().Info("Stopping cleanup controller")
 	return
 }
 
-func (c *cleanupController) worker(stopChan chan struct{}) {
+func (c *cleanupController) worker() {
 	for {
-		fmt.Sprintf("cleanup tick")
+		log().Info("cleanup tick")
 		c.deleteTimedOutClusterRoleBindings()
 		c.deleteTimedOutServiceAccounts()
 		time.Sleep(c.interval)
@@ -51,6 +48,10 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 			createdAt, err := time.Parse(timeFormat, createdAtString)
 			if err != nil {
 				log().Errorf("parsing annotation of service account (%s): %v", sa.Name, err)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"error-parsing-annotation",
+					"service-account",
+				).Inc()
 				continue
 			}
 
@@ -61,13 +62,15 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 					continue
 				}
 				log().Infof("service account (%s) outside time span, deleting it", sa.Name)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"success",
+					"service-account",
+				).Inc()
 			} else if inTimeSpan(createdAt, c.tokenLifetime) {
 				log().Infof("service account (%s) still in time span ", sa.Name)
 			}
-
 		}
 	}
-
 }
 
 func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
@@ -80,6 +83,10 @@ func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
 			createdAt, err := time.Parse(timeFormat, createdAtString)
 			if err != nil {
 				log().Errorf("parsing of cluster role binding (%s): %v", crb.Name, err)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"error-parsing-annotation",
+					"cluster-role-binding",
+				).Inc()
 				continue
 			}
 
@@ -90,13 +97,15 @@ func (c *cleanupController) deleteTimedOutClusterRoleBindings() {
 					continue
 				}
 				log().Infof("cluster role binding (%s) outside time span, deleting it ", crb.Name)
+				metricRevokedCleanupTokens.WithLabelValues(
+					"success",
+					"cluster-role-binding",
+				).Inc()
 			} else if inTimeSpan(createdAt, c.tokenLifetime) {
 				log().Infof("cluster role binding (%s) still in time span ", crb.Name)
 			}
-
 		}
 	}
-
 }
 
 func inTimeSpan(start time.Time, lifetime time.Duration) bool {

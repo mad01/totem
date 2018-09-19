@@ -11,6 +11,7 @@ type controller struct {
 	stopChan          chan struct{}
 	httpServer        *HttpServer
 	cleanupController *cleanupController
+	activeCollector   *activeCollector
 }
 
 func newController(kube *Kube, interval, lifetime time.Duration, config *Config) *controller {
@@ -19,6 +20,7 @@ func newController(kube *Kube, interval, lifetime time.Duration, config *Config)
 		stopChan:          make(chan struct{}),
 		httpServer:        newHttpServer(kube, config),
 		cleanupController: newCleanupController(kube, interval, lifetime),
+		activeCollector:   newActiveCollector(kube),
 	}
 	return c
 }
@@ -27,11 +29,11 @@ func (c *controller) Run() {
 	log().Info("Starting controller")
 
 	go handleSigterm(c.stopChan)
-
-	go c.cleanupController.Run()
+	go c.cleanupController.Run(c.stopChan)
+	go c.activeCollector.Run(c.stopChan)
 	go c.httpServer.Run()
 
-	<-c.stopChan // block until stopchan closed
+	<-c.stopChan // block until stopChan closed
 
 	log().Info("Stopping controller")
 	return

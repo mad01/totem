@@ -84,7 +84,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 				http.StatusInternalServerError,
 				"Ops.. failed to remove cluster role binding (%s) )", username,
 			)
-			metricRevokedTokens.WithLabelValues(username, "error").Inc()
+			metricRevokedHTTPTokens.WithLabelValues(username, "error").Inc()
 			return
 		}
 		err = h.kube.deleteServiceAccounts(username)
@@ -95,7 +95,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 			)
 			return
 		}
-		metricRevokedTokens.WithLabelValues(username, "success").Inc()
+		metricRevokedHTTPTokens.WithLabelValues(username, "success").Inc()
 		c.String(http.StatusOK, "removed kube config for user (%s)", username)
 		return
 	}
