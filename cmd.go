@@ -45,7 +45,10 @@ func cmdRunController() *cobra.Command {
 			controller.Run()
 		},
 	}
-	command.Flags().StringVarP(&kubeconfig, "kube.config", "k", "", "outside cluster path to kube config")
+	command.Flags().StringVarP(
+		&kubeconfig,
+		"kube.config", "k", "",
+		"only needed with running outside cluster, path to kube config")
 	command.Flags().StringVarP(
 		&config,
 		"config", "u", "",

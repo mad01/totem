@@ -82,7 +82,7 @@ Flags:
   -h, --help                      help for controller
   -p, --http.port int             port to expose service on (default 8080)
   -i, --interval duration         the interval in which the cleanup of old token runs (default 1m0s)
-  -k, --kube.config string        outside cluster path to kube config
+  -k, --kube.config string        only needed with running outside cluster, path to kube config
   -n, --namespace string          ns where the service accounts and cluster role bindings is created (default "default")
   -l, --token.lifetime duration   the time that a kube config is valid for (default 1h0m0s)
   -v, --verbose                   verbose output
