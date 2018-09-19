@@ -8,7 +8,6 @@ type cleanupController struct {
 	interval      time.Duration
 	tokenLifetime time.Duration
 	kube          *Kube
-	stopChan      chan struct{}
 }
 
 func newCleanupController(kube *Kube, interval, lifetime time.Duration) *cleanupController {
@@ -16,22 +15,21 @@ func newCleanupController(kube *Kube, interval, lifetime time.Duration) *cleanup
 		interval:      interval,
 		tokenLifetime: lifetime,
 		kube:          kube,
-		stopChan:      make(chan struct{}),
 	}
 	return c
 }
 
-func (c *cleanupController) Run() {
+func (c *cleanupController) Run(stop chan struct{}) {
 	log().Info("Starting cleanup controller")
 
-	go c.worker(c.stopChan)
-	<-c.stopChan // block until stopchan closed
+	go c.worker()
+	<-stop // block until stop closed
 
 	log().Info("Stopping cleanup controller")
 	return
 }
 
-func (c *cleanupController) worker(stopChan chan struct{}) {
+func (c *cleanupController) worker() {
 	for {
 		log().Info("cleanup tick")
 		c.deleteTimedOutClusterRoleBindings()
