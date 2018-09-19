@@ -1,6 +1,5 @@
 package main
 
-// TODO: create init prometheus stuff for monitoring
 import (
 	"fmt"
 
@@ -12,11 +11,16 @@ const (
 )
 
 var (
-	// active services
-	metricActiveServicesEventsCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: getMetricPrefix("active_services_events"),
-		Help: "number of service events"},
-		[]string{},
+	metricIssuedTokens = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: getMetricPrefix("issued_configs"),
+		Help: "number issued kube configs"},
+		[]string{"username", "status"},
+	)
+
+	metricRevokedTokens = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: getMetricPrefix("revoked_configs"),
+		Help: "number revoked kube configs"},
+		[]string{"username", "status"},
 	)
 )
 
@@ -28,5 +32,6 @@ type PrometheusController struct {
 }
 
 func (p *PrometheusController) registerMetrics() {
-	prometheus.MustRegister(metricActiveServicesEventsCounter)
+	prometheus.MustRegister(metricIssuedTokens)
+	prometheus.MustRegister(metricRevokedTokens)
 }
