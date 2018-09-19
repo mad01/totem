@@ -97,6 +97,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 
 func (h *HttpServer) handlerKubeConfigRevokeADMIN(c *gin.Context) {
 	// allows users with admin role to revoke others token
+	// todo: only users with admin should be able to revoke
 	username := c.MustGet(gin.AuthUserKey).(string)
 	userToRemove := c.Param("name")
 	if _, ok := h.config.Users[username]; ok {
