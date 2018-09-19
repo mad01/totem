@@ -8,7 +8,7 @@ default: format format-verify build-dev
 
 
 clean:
-	@rm -r _bin _deploy _release
+	@rm -r _bin _release
 
 
 test: format-verify
