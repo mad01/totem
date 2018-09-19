@@ -61,6 +61,7 @@ func (c *cleanupController) deleteTimedOutServiceAccounts() {
 					continue
 				}
 				log().Infof("service account (%s) outside time span, deleting it", sa.Name)
+				metricRevokedHTTPTokens.WithLabelValues(username, "success", "cleanup").Inc()
 			} else if inTimeSpan(createdAt, c.tokenLifetime) {
 				log().Infof("service account (%s) still in time span ", sa.Name)
 			}

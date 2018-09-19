@@ -17,7 +17,7 @@ var (
 		[]string{"username", "status"},
 	)
 
-	metricRevokedTokens = prometheus.NewCounterVec(prometheus.CounterOpts{
+	metricRevokedHTTPTokens = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: getMetricPrefix("revoked_configs"),
 		Help: "number revoked kube configs"},
 		[]string{"username", "status"},
@@ -33,5 +33,5 @@ type PrometheusController struct {
 
 func (p *PrometheusController) registerMetrics() {
 	prometheus.MustRegister(metricIssuedTokens)
-	prometheus.MustRegister(metricRevokedTokens)
+	prometheus.MustRegister(metricRevokedHTTPTokens)
 }
