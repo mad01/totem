@@ -55,6 +55,18 @@ start with the `template/deployment.yaml` as the base.
 * `VERSION` fill in the container version
 
 
+#### running in/outside cluster
+when running in the cluster: see `template/deployment.yaml` for example
+* a service account
+* a cluster role 
+* a cluster role bindig for the service account
+
+when running outside the cluster:
+* a service account
+* a cluster role 
+* a cluster role bindig for the service account (the lazy way is to bind to the `cluster-admin` cluster role)
+* a kube config generated from the service account secret to be able to access the cluster with the correct permissions (lazy way use the admin kube config)
+
 
 #### cli controller flags
 ```
