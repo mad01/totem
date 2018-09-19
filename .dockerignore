@@ -1,3 +1,7 @@
 /.git
 /vendor
 _bin
+_release
+manifests
+template
+hacks
