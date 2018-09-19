@@ -87,3 +87,15 @@ Flags:
   -l, --token.lifetime duration   the time that a kube config is valid for (default 1h0m0s)
   -v, --verbose                   verbose output
 ```
+
+#### kube config create from bash script
+with `hacks/create-kubeconfig.sh` you can generate a kubeconfig using the same concepts as this controller. the only thing you get is the config in a temp folder 
+
+example usage
+```bash
+usage: ./create-kubeconfig.sh <service_account_name> <namespace> <rbac_access_level>
+
+./hacks/create-kubeconfig.sh view-minikube default view
+./hacks/create-kubeconfig.sh edit-minikube default edit
+```
+
