@@ -25,6 +25,8 @@ func newHttpServer(kube *Kube, config *Config) *HttpServer {
 }
 
 func (h *HttpServer) Run() {
+	h.promController.registerMetrics()
+
 	router := gin.Default()
 
 	router.GET("/health", h.handlerHealth)
@@ -55,6 +57,7 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			log().Error(err.Error())
+			metricIssuedTokens.WithLabelValues(username, "error").Inc()
 			return
 		}
 		log().Infof(
@@ -63,6 +66,7 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 			user.ClusterRole,
 			username,
 		)
+		metricIssuedTokens.WithLabelValues(username, "success").Inc()
 		c.String(http.StatusOK, cfg)
 		return
 	}
@@ -73,7 +77,6 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 
 func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
-
 	if _, ok := h.config.Users[username]; ok {
 		err := h.kube.deleteClusterRoleBindings(username)
 		if err != nil {
@@ -81,6 +84,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 				http.StatusInternalServerError,
 				"Ops.. failed to remove cluster role binding (%s) )", username,
 			)
+			metricRevokedTokens.WithLabelValues(username, "error").Inc()
 			return
 		}
 		err = h.kube.deleteServiceAccounts(username)
@@ -91,6 +95,7 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 			)
 			return
 		}
+		metricRevokedTokens.WithLabelValues(username, "success").Inc()
 		c.String(http.StatusOK, "removed kube config for user (%s)", username)
 		return
 	}
