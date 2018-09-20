@@ -119,14 +119,14 @@ func (k *Kube) deleteClusterRoleBindings(username string) error {
 	)
 }
 
-func (k *Kube) delete(username string) error {
-	err := k.deleteClusterRoleBindings(username)
+func (k *Kube) delete(user *User) error {
+	err := k.deleteClusterRoleBindings(user.Name)
 	if err != nil {
-		return fmt.Errorf("Ops.. failed to remove cluster role binding (%s) )", username)
+		return fmt.Errorf("Ops.. failed to remove cluster role binding (%s) )", user.Name)
 	}
-	err = k.deleteServiceAccounts(username)
+	err = k.deleteServiceAccounts(user.Name)
 	if err != nil {
-		return fmt.Errorf("Ops.. failed to remove service account (%s) )", username)
+		return fmt.Errorf("Ops.. failed to remove service account (%s) )", user.Name)
 	}
 	return nil
 }
@@ -205,14 +205,14 @@ func (k *Kube) getServiceAccount(name string) (*v1.ServiceAccount, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).Get(name, meta_v1.GetOptions{})
 }
 
-func (k *Kube) getServiceAccountKubeConfig(clusterRole, username string) (string, error) {
-	name := fmt.Sprintf("%s-%s", username, uuid.NewUUID())
-	account, err := k.createServiceAccount(name, username)
+func (k *Kube) getServiceAccountKubeConfig(user *User) (string, error) {
+	name := fmt.Sprintf("%s-%s", user.Name, uuid.NewUUID())
+	account, err := k.createServiceAccount(name, user.Name)
 	if errCheck(err) {
 		return "", err
 	}
 
-	err = k.createClusterRoleBinding(clusterRole, username, account)
+	err = k.createClusterRoleBinding(user.ClusterRole, user.Name, account)
 	if errCheck(err) {
 		return "", err
 	}
