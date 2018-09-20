@@ -12,6 +12,11 @@ type User struct {
 	Name        string `yaml:"name"`
 	Password    string `yaml:"password"`
 	ClusterRole string `yaml:"clusterRole"`
+	Admin       bool   `yaml:"admin"`
+}
+
+func (u *User) isAdmin() bool {
+	return u.Admin
 }
 
 type Users struct {
@@ -65,9 +70,9 @@ func (c *Config) LoadUsers(u *Users) {
 func (c *Config) LoadDefaults() *Config {
 	log().Warn("loading default config")
 	defaults := []User{
-		{Name: "admin", Password: "admin", ClusterRole: "admin"},
-		{Name: "edit", Password: "edit", ClusterRole: "edit"},
-		{Name: "view", Password: "view", ClusterRole: "view"},
+		{Name: "admin", Password: "admin", ClusterRole: "admin", Admin: true},
+		{Name: "edit", Password: "edit", ClusterRole: "edit", Admin: false},
+		{Name: "view", Password: "view", ClusterRole: "view", Admin: false},
 	}
 	users := make(map[string]User)
 	accounts := make(gin.Accounts)
