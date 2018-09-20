@@ -26,16 +26,24 @@ KUBECONFIG=config kubectl get pods
 ```
 
 
-revoke config for your user
+revoke configs for your user
 ```bash
 http -a username:pass DELETE http://example.com:8080/api/kubeconfig
 ```
 
+revoke configs for other users, this is possible for users configured with `admin: True` in the yaml config
+```bash
+http -a username:pass DELETE http://localhost:8080/api/revoke/<user>
+```
+
 
 #### config 
-the config only contains the users currently. The way you can manage different
-levels of access, is by defining a cluster role. The cluster role will then be 
-bound to the service account for the user with a cluster role binding
+configure users and access. The config contains of a list of users with a few 
+different configuration options. 
+* name `string` the name of the user
+* clusterRole `string` the name of a existing cluster role
+* password `string` the password for the user
+* admin `bool` if set to `True` the user will be able to revoke other users configs
 
 example config were we use the defualt admin and view cluster roles. The 
 alexander user will get bound to the admin cluster role, and the test user 
@@ -43,7 +51,7 @@ will be bound to the view cluster role
 ```yaml
 ---
 users:
-  - {name: alexander, clusterRole: admin, password: qwerty123}
+  - {name: alexander, clusterRole: admin, password: qwerty123, admin: True}
   - {name: test, clusterRole: view, password: qwerty123}
 ```
 

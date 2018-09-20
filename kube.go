@@ -119,6 +119,18 @@ func (k *Kube) deleteClusterRoleBindings(username string) error {
 	)
 }
 
+func (k *Kube) delete(username string) error {
+	err := k.deleteClusterRoleBindings(username)
+	if err != nil {
+		return fmt.Errorf("Ops.. failed to remove cluster role binding (%s) )", username)
+	}
+	err = k.deleteServiceAccounts(username)
+	if err != nil {
+		return fmt.Errorf("Ops.. failed to remove service account (%s) )", username)
+	}
+	return nil
+}
+
 func (k *Kube) deleteClusterRoleBinding(name string) error {
 	return k.client.RbacV1().ClusterRoleBindings().Delete(name, &meta_v1.DeleteOptions{})
 }
