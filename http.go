@@ -96,27 +96,30 @@ func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 }
 
 func (h *HttpServer) handlerKubeConfigRevokeADMIN(c *gin.Context) {
-	// allows users with admin role to revoke others token
-	// todo: only users with admin should be able to revoke
+	// allows users with admin to revoke others token
 	username := c.MustGet(gin.AuthUserKey).(string)
 	userToRemove := c.Param("name")
-	if _, ok := h.config.Users[username]; ok {
-		if userToRemove == "" {
-			c.String(http.StatusInternalServerError, "missing username param /api/revoke/:name:")
-			metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
-			return
-		}
-		err := h.kube.delete(userToRemove)
-		if err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
-			metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
-			return
+	if user, ok := h.config.Users[username]; ok {
+		if user.isAdmin() {
+			if userToRemove == "" {
+				c.String(http.StatusInternalServerError, "missing username param /api/revoke/:name:")
+				metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
+				return
+			}
+			err := h.kube.delete(userToRemove)
+			if err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
+				return
+			} else {
+				metricRevokedHTTPTokensADMIN.WithLabelValues(username, "success").Inc()
+				c.String(http.StatusOK, "removed kube config for user (%s)", userToRemove)
+				return
+			}
 		} else {
-			metricRevokedHTTPTokensADMIN.WithLabelValues(username, "success").Inc()
-			c.String(http.StatusOK, "removed kube config for user (%s)", userToRemove)
-			return
+			c.String(http.StatusUnauthorized, "Ops.. username did not have permission to revoke other users)")
 		}
 	}
 	// return default
-	c.String(http.StatusInternalServerError, "Ops.. username did not have access configured)")
+	c.String(http.StatusInternalServerError, "Ops.. username did not have permission configured)")
 }
