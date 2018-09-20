@@ -54,20 +54,20 @@ func (h *HttpServer) handlerHealth(c *gin.Context) {
 func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
 	if user, ok := h.config.Users[username]; ok {
-		cfg, err := h.kube.getServiceAccountKubeConfig(user.ClusterRole, username)
+		cfg, err := h.kube.getServiceAccountKubeConfig(&user)
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			log().Error(err.Error())
-			metricIssuedTokens.WithLabelValues(username, "error").Inc()
+			metricIssuedTokens.WithLabelValues(user.Name, "error").Inc()
 			return
 		}
 		log().Infof(
 			"generated kube config for cluster: (%s) cluster role: (%s) to (%s)",
 			h.kube.cluster,
 			user.ClusterRole,
-			username,
+			user.Name,
 		)
-		metricIssuedTokens.WithLabelValues(username, "success").Inc()
+		metricIssuedTokens.WithLabelValues(user.Name, "success").Inc()
 		c.String(http.StatusOK, cfg)
 		return
 	}
@@ -78,15 +78,15 @@ func (h *HttpServer) handlerKubeConfig(c *gin.Context) {
 
 func (h *HttpServer) handlerKubeConfigRevoke(c *gin.Context) {
 	username := c.MustGet(gin.AuthUserKey).(string)
-	if _, ok := h.config.Users[username]; ok {
-		err := h.kube.delete(username)
+	if user, ok := h.config.Users[username]; ok {
+		err := h.kube.delete(&user)
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
-			metricRevokedHTTPTokens.WithLabelValues(username, "error").Inc()
+			metricRevokedHTTPTokens.WithLabelValues(user.Name, "error").Inc()
 			return
 		} else {
-			metricRevokedHTTPTokens.WithLabelValues(username, "success").Inc()
-			c.String(http.StatusOK, "removed kube config for user (%s)", username)
+			metricRevokedHTTPTokens.WithLabelValues(user.Name, "success").Inc()
+			c.String(http.StatusOK, "removed kube config for user (%s)", user.Name)
 			return
 		}
 	}
@@ -106,7 +106,7 @@ func (h *HttpServer) handlerKubeConfigRevokeADMIN(c *gin.Context) {
 				metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
 				return
 			}
-			err := h.kube.delete(userToRemove)
+			err := h.kube.delete(&User{Name: userToRemove})
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				metricRevokedHTTPTokensADMIN.WithLabelValues(username, "error").Inc()
