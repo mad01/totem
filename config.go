@@ -8,11 +8,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type Role struct {
+	Name      string `yaml:"role"`
+	Namespace string `yaml:"ns"`
+}
+
 type User struct {
 	Name        string `yaml:"name"`
 	Password    string `yaml:"password"`
 	ClusterRole string `yaml:"clusterRole"`
 	Admin       bool   `yaml:"admin"`
+	Roles       []Role `yaml:"roles"`
 }
 
 func (u *User) isAdmin() bool {

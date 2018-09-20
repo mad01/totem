@@ -75,8 +75,42 @@ func (k *Kube) createClusterRoleBinding(clusterRole, username string, sa *v1.Ser
 		},
 	}
 
-	k.client.RbacV1().ClusterRoleBindings().Create(crb)
-	return nil
+	_, err := k.client.RbacV1().ClusterRoleBindings().Create(crb)
+	return err
+}
+
+func (k *Kube) createRoleBinding(role *Role, user *User, sa *v1.ServiceAccount) error {
+	crb := &rbac.ClusterRoleBinding{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: sa.Name,
+			Annotations: map[string]string{
+				annotation:          "",
+				annotationCreatedAt: time.Now().Format(timeFormat),
+			},
+			Labels: map[string]string{
+				annotationUsername: user.Name,
+			},
+		},
+		TypeMeta: meta_v1.TypeMeta{
+			Kind:       "Role",
+			APIVersion: "rbac.authorization.k8s.io/v1beta1",
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: rbac.GroupName,
+			Kind:     "Role",
+			Name:     role.Name,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Kind:      rbac.ServiceAccountKind,
+				Namespace: k.serviceAccountNamespace,
+				Name:      sa.Name,
+			},
+		},
+	}
+
+	_, err := k.client.RbacV1().ClusterRoleBindings().Create(crb)
+	return err
 }
 
 func (k *Kube) createServiceAccount(name, username string) (*v1.ServiceAccount, error) {
@@ -197,6 +231,10 @@ func (k *Kube) getClusterRoleBindingList() (*rbac.ClusterRoleBindingList, error)
 	return k.client.RbacV1().ClusterRoleBindings().List(meta_v1.ListOptions{})
 }
 
+func (k *Kube) getRoleBindingList() (*rbac.RoleBindingList, error) {
+	return k.client.RbacV1().RoleBindings(meta_v1.NamespaceAll).List(meta_v1.ListOptions{})
+}
+
 func (k *Kube) getServiceAccountList() (*v1.ServiceAccountList, error) {
 	return k.client.CoreV1().ServiceAccounts(k.serviceAccountNamespace).List(meta_v1.ListOptions{})
 }
@@ -212,9 +250,15 @@ func (k *Kube) getServiceAccountKubeConfig(user *User) (string, error) {
 		return "", err
 	}
 
-	err = k.createClusterRoleBinding(user.ClusterRole, user.Name, account)
-	if errCheck(err) {
-		return "", err
+	if user.ClusterRole != "" {
+		err = k.createClusterRoleBinding(user.ClusterRole, user.Name, account)
+		if errCheck(err) {
+			return "", err
+		}
+	}
+
+	if len(user.Roles) >= 1 {
+		// todo: call create role binding
 	}
 
 	secret, err := k.getSecret(account)
