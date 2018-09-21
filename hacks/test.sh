@@ -1,5 +1,22 @@
 #!/bin/bash -
-set -o nounset # Treat unset variables as an error
+set -ef -o pipefail
+
+# Check for dependencies
+command -v jq >/dev/null 2>&1 || {
+    echo >&2 "I require jq but it's not installed.  Aborting."
+    exit 1
+}
+command -v http >/dev/null 2>&1 || {
+    echo >&2 "I require httpie but it's not installed.  Aborting."
+    exit 1
+}
+command -v kubectl >/dev/null 2>&1 || {
+    echo >&2 "I require kubectl but it's not installed.  Aborting."
+    exit 1
+}
+
+
+
 
 function call-http() {
 	if http --check-status --ignore-stdin --timeout=2.5 -a "$1":qwerty123 "$2" http://localhost:8080/"$3" &>/dev/null; then
