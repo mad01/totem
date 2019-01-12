@@ -4,8 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
-
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type User struct {
